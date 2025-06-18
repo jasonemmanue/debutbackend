@@ -1,0 +1,279 @@
+// =================================================================
+// Schema Prisma Final pour l'Annuaire d'Entreprises
+// Intègre la structure de l'utilisateur de Auth.js avec vos tables métier.
+// =================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =================================================================
+// MODÈLES REQUIS PAR AUTH.JS (FUSIONNÉS AVEC VOTRE TABLE ABONNE)
+// =================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String? // Fourni par Google (nom complet)
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String? // Fourni par Google (URL de l'avatar)
+  
+  // --- VOS CHAMPS DE LA TABLE "ABONNE" ---
+  prenom            String?
+  mot_de_passe      String?
+  date_inscription  DateTime  @default(now())
+  type              TypeAbonne?
+  
+  // --- RELATIONS ---
+  accounts      Account[]
+  sessions      Session[]
+  
+  // Relations avec vos autres tables
+  entreprise        Entreprise?
+  employe           Employe?
+  particulier       Particulier?
+  stagiaire         Stagiaire?
+  partenaire        Partenaire?
+  evenementsCrees   Evenement[]   @relation("CreateurEvenement")
+  annoncesCrees     Annonce[]     @relation("CreateurAnnonce")
+  commentaires      Commentaire[]
+  participations    ParticipationEvenement[]
+  reactions         ReactionAnnonce[]
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  @@unique([identifier, token])
+}
+
+
+// =================================================================
+// VOS TABLES MÉTIER (ADAPTÉES POUR PRISMA)
+// =================================================================
+
+model Entreprise {
+  id                String    @id @default(cuid())
+  raison_sociale    String?
+  siret             String?   @unique
+  secteur_activite  String?
+  adresse           String?   @db.Text
+  telephone         String?
+  
+  user              User      @relation(fields: [userId], references: [id])
+  userId            String    @unique // Relation 1-à-1 avec User
+  
+  prestations       Prestation[]
+  stages            Stage[]
+  employes          Employe[]
+}
+
+model Employe {
+  id              String    @id @default(cuid())
+  poste           String?
+  competences     String?   @db.Text
+  date_embauche   DateTime?
+  
+  user            User      @relation(fields: [userId], references: [id])
+  userId          String    @unique // Relation 1-à-1 avec User
+  
+  entreprise      Entreprise @relation(fields: [entrepriseId], references: [id])
+  entrepriseId    String
+}
+
+model Particulier {
+  id          String   @id @default(cuid())
+  adresse     String?  @db.Text
+  telephone   String?
+  interets    String?  @db.Text
+  
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String   @unique
+}
+
+model Stagiaire {
+  id             String      @id @default(cuid())
+  niveau_etudes  String?
+  domaine_etudes String?
+  competences    String?     @db.Text
+  
+  user           User        @relation(fields: [userId], references: [id])
+  userId         String      @unique
+  
+  demandes_stage DemandeStage[]
+}
+
+model Partenaire {
+  id                      String    @id @default(cuid())
+  type_partenariat        String?
+  date_debut_partenariat  DateTime?
+  date_fin_partenariat    DateTime?
+  
+  user                    User      @relation(fields: [userId], references: [id])
+  userId                  String    @unique
+  
+  prestations             Prestation[]
+}
+
+model Evenement {
+  id              String    @id @default(cuid())
+  titre           String
+  description     String?   @db.Text
+  date_debut      DateTime?
+  date_fin        DateTime?
+  lieu            String?
+  
+  createur        User      @relation("CreateurEvenement", fields: [createurId], references: [id])
+  createurId      String
+  
+  participations  ParticipationEvenement[]
+}
+
+model Prestation {
+  id              String    @id @default(cuid())
+  titre           String
+  description     String?   @db.Text
+  tarif           Decimal?
+  
+  entreprise      Entreprise @relation(fields: [entrepriseId], references: [id])
+  entrepriseId    String
+  
+  partenaire      Partenaire? @relation(fields: [partenaireId], references: [id])
+  partenaireId    String?
+}
+
+model Stage {
+  id                     String    @id @default(cuid())
+  titre                  String
+  description            String?   @db.Text
+  date_debut             DateTime?
+  date_fin               DateTime?
+  competences_requises   String?   @db.Text
+  
+  entreprise             Entreprise @relation(fields: [entrepriseId], references: [id])
+  entrepriseId           String
+  
+  demandes               DemandeStage[]
+}
+
+model Annonce {
+  id                String    @id @default(cuid())
+  titre             String
+  contenu           String?   @db.Text
+  date_publication  DateTime? @default(now())
+  
+  createur          User      @relation("CreateurAnnonce", fields: [createurId], references: [id])
+  createurId        String
+  
+  commentaires      Commentaire[]
+  reactions         ReactionAnnonce[]
+}
+
+model Commentaire {
+  id              String    @id @default(cuid())
+  contenu         String    @db.Text
+  date_creation   DateTime  @default(now())
+  
+  annonce         Annonce   @relation(fields: [annonceId], references: [id])
+  annonceId       String
+  
+  abonne          User      @relation(fields: [abonneId], references: [id])
+  abonneId        String
+}
+
+model DemandeStage {
+  id            String          @id @default(cuid())
+  date_demande  DateTime        @default(now())
+  statut        StatutDemande   @default(en_attente)
+  
+  stage         Stage           @relation(fields: [stageId], references: [id])
+  stageId       String
+  
+  stagiaire     Stagiaire       @relation(fields: [stagiaireId], references: [id])
+  stagiaireId   String
+}
+
+model ParticipationEvenement {
+  id            String                @id @default(cuid())
+  statut        StatutParticipation   @default(inscrit)
+  
+  evenement     Evenement             @relation(fields: [evenementId], references: [id])
+  evenementId   String
+  
+  abonne        User                  @relation(fields: [abonneId], references: [id])
+  abonneId      String
+}
+
+model ReactionAnnonce {
+  id             String            @id @default(cuid())
+  type_reaction  TypeReactionEnum
+  date_reaction  DateTime          @default(now())
+  
+  annonce        Annonce           @relation(fields: [annonceId], references: [id])
+  annonceId      String
+  
+  abonne         User              @relation(fields: [abonneId], references: [id])
+  abonneId       String
+}
+
+// =================================================================
+// VOS ENUMS (DIRECTEMENT DANS LE SCHEMA PRISMA)
+// =================================================================
+
+enum TypeAbonne {
+  entreprise
+  employe
+  particulier
+  stagiaire
+  partenaire
+}
+
+enum StatutDemande {
+  en_attente
+  accepte
+  refuse
+}
+
+enum StatutParticipation {
+  inscrit
+  present
+  absent
+}
+
+enum TypeReactionEnum {
+  like
+  partage
+  interesse
+}
