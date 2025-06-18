@@ -7,16 +7,47 @@ import { Building2, Mail, Lock, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { signIn } from "next-auth/react"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleOAuthLogin = (provider: "google" | "linkedin") => {
+  // State pour le formulaire
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get("callbackUrl") || "/"
+
+  const handleOAuthLogin = (provider: "google") => {
     setIsLoading(true)
     setLoadingProvider(provider)
     // Lance la connexion réelle via NextAuth
-    signIn(provider, { callbackUrl: "/" })
+    signIn(provider, { callbackUrl })
+  }
+
+  const handleCredentialLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setLoadingProvider(null) // On n'utilise pas de fournisseur OAuth ici
+    setError(null)
+
+    const result = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+    })
+
+    if (result?.error) {
+      setError("Email ou mot de passe incorrect. Veuillez réessayer.")
+      setIsLoading(false)
+    } else {
+      // La redirection est gérée par le `push` pour éviter un rechargement complet de la page
+      router.push(callbackUrl)
+    }
   }
 
   return (
@@ -89,20 +120,6 @@ export default function LoginPage() {
                 )}
                 Continuer avec Google
               </Button>
-              <Button
-                onClick={() => handleOAuthLogin("linkedin")}
-                disabled={true}
-                className="w-full h-12 bg-[#0077B5] hover:bg-[#005885] text-white shadow-md transition-all duration-300 opacity-50 cursor-not-allowed"
-              >
-                {loadingProvider === "linkedin" ? (
-                  <Loader2 className="h-5 w-5 animate-spin mr-3" />
-                ) : (
-                  <svg className="h-5 w-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                  </svg>
-                )}
-                Continuer avec LinkedIn (bientôt)
-              </Button>
             </div>
             <div className="relative">
               <Separator className="my-6" />
@@ -110,40 +127,49 @@ export default function LoginPage() {
                 <span className="bg-white px-4 text-sm text-gray-500">ou</span>
               </div>
             </div>
-            <form className="space-y-4">
+            <form onSubmit={handleCredentialLogin} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Email</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="votre@email.com"
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all duration-300"
+                    required
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Mot de passe</label>
+                <div className="flex justify-between items-center">
+                    <label className="text-sm font-medium text-gray-700">Mot de passe</label>
+                    <Link href="/auth/forgot-password" className="text-sm text-rose-600 hover:text-rose-700 transition-colors">
+                        Mot de passe oublié ?
+                    </Link>
+                </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all duration-300"
+                    required
                   />
                 </div>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center space-x-2">
-                  <input type="checkbox" className="rounded border-gray-300 text-rose-600 focus:ring-rose-500" />
-                  <span className="text-gray-600">Se souvenir de moi</span>
-                </label>
-                <Link href="/auth/forgot-password" className="text-rose-600 hover:text-rose-700 transition-colors">
-                  Mot de passe oublié ?
-                </Link>
-              </div>
-              <Button className="w-full h-12 bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white font-semibold shadow-lg transition-all duration-300">
-                Se connecter
+              
+              {error && (
+                <div className="bg-red-100 border border-red-300 rounded-xl p-3 text-center">
+                  <p className="text-red-700 text-sm">{error}</p>
+                </div>
+              )}
+
+              <Button disabled={isLoading} type="submit" className="w-full h-12 bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white font-semibold shadow-lg transition-all duration-300">
+                {isLoading && !loadingProvider ? <Loader2 className="animate-spin" /> : "Se connecter"}
               </Button>
             </form>
             <div className="text-center pt-4">
@@ -159,18 +185,6 @@ export default function LoginPage() {
             </div>
           </CardContent>
         </Card>
-        <div className="text-center mt-8 text-sm text-gray-500">
-          <p>En vous connectant, vous acceptez nos</p>
-          <div className="space-x-4 mt-1">
-            <Link href="/terms" className="hover:text-rose-600 transition-colors">
-              Conditions d'utilisation
-            </Link>
-            <span>•</span>
-            <Link href="/privacy" className="hover:text-rose-600 transition-colors">
-              Politique de confidentialité
-            </Link>
-          </div>
-        </div>
       </div>
     </div>
   )
