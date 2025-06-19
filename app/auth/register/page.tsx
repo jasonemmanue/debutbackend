@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Building2, User, ArrowLeft, Briefcase, Loader2 } from "lucide-react"
+import { Building2, User, ArrowLeft, Briefcase, Loader2, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { signIn } from "next-auth/react"
@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null)
+  const [isSuccess, setIsSuccess] = useState(false); // État pour gérer l'affichage du succès
   const router = useRouter()
 
   const [formData, setFormData] = useState({
@@ -38,35 +39,18 @@ export default function RegisterPage() {
         body: JSON.stringify(formData),
       });
 
-      // Si la réponse n'est pas "ok" (status 2xx), on gère l'erreur
       if (!res.ok) {
-        // On vérifie si la réponse est bien du JSON avant de la parser
-        const contentType = res.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || "Une erreur est survenue.");
-        } else {
-          // Si ce n'est PAS du JSON, c'est probablement une page d'erreur HTML
-          // On affiche une erreur générique et on loggue le détail pour le débogage.
-          const errorText = await res.text();
-          console.error("Réponse inattendue du serveur (HTML?) :", errorText);
-          throw new Error("Le serveur a rencontré une erreur interne. Vérifiez les logs du serveur.");
-        }
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Une erreur est survenue.");
       }
-
-      // Si l'inscription a réussi, on connecte l'utilisateur
-      const signInResponse = await signIn("credentials", {
-        email: formData.email,
-        password: formData.password,
-        redirect: false,
-      })
-
-      if (signInResponse?.error) {
-        setError("Inscription réussie, mais la connexion a échoué. Veuillez vous connecter manuellement.");
+      
+      // Mettre à jour l'état de succès au lieu de connecter
+      setIsSuccess(true);
+      
+      // Rediriger vers la page de connexion après un court délai
+      setTimeout(() => {
         router.push("/auth/login");
-      } else {
-        router.push("/");
-      }
+      }, 3000); // 3 secondes de délai
 
     } catch (err: any) {
       setError(err.message);
@@ -81,6 +65,27 @@ export default function RegisterPage() {
     signIn("google", { callbackUrl: "/" })
   }
 
+  // Affiche le message de succès après l'inscription
+  if (isSuccess) {
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-purple-50 flex items-center justify-center p-6">
+            <Card className="w-full max-w-md shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
+                <CardContent className="p-8 text-center">
+                    <div className="w-16 h-16 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center">
+                        <CheckCircle className="h-8 w-8 text-green-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-4 text-gray-800">Inscription réussie !</h3>
+                    <p className="text-gray-600 mb-6">
+                        Votre compte a été créé. Vous allez être redirigé vers la page de connexion.
+                    </p>
+                    <Loader2 className="h-6 w-6 mx-auto animate-spin text-rose-500" />
+                </CardContent>
+            </Card>
+        </div>
+    );
+  }
+
+  // Écran de sélection du type de compte
   if (!userType) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-purple-50 flex items-center justify-center p-6">
@@ -129,6 +134,7 @@ export default function RegisterPage() {
     );
   }
 
+  // Formulaire d'inscription
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-purple-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md relative z-10">

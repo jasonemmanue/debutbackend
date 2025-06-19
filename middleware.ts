@@ -1,18 +1,9 @@
-import { auth } from "@/auth"
+// /middleware.ts
+import NextAuth from "next-auth";
+import { authConfig } from "./auth.config";
 
-export default auth
+export default NextAuth(authConfig).auth;
 
-// Le matcher spécifie les routes sur lesquelles le middleware sera appliqué.
-// Ceci protège les routes tout en ignorant les routes API, les fichiers statiques, etc.
 export const config = {
-  matcher: [
-    /*
-     * Fait correspondre tous les chemins de requête sauf ceux qui commencent par :
-     * - api (routes API)
-     * - _next/static (fichiers statiques)
-     * - _next/image (fichiers d'optimisation d'image)
-     * - favicon.ico (fichier favicon)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
-}
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+};

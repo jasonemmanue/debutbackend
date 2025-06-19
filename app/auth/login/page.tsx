@@ -29,26 +29,27 @@ export default function LoginPage() {
     signIn(provider, { callbackUrl })
   }
 
-  const handleCredentialLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setLoadingProvider(null) // On n'utilise pas de fournisseur OAuth ici
-    setError(null)
+const handleCredentialLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setLoadingProvider(null);
+    setError(null);
 
     const result = await signIn("credentials", {
-      redirect: false,
+      redirect: false, // Important de garder `redirect: false` pour gérer le résultat
       email,
       password,
-    })
+    });
 
     if (result?.error) {
-      setError("Email ou mot de passe incorrect. Veuillez réessayer.")
-      setIsLoading(false)
-    } else {
-      // La redirection est gérée par le `push` pour éviter un rechargement complet de la page
-      router.push(callbackUrl)
+      // Si NextAuth renvoie une erreur (ex: mauvais mot de passe)
+      setError("Email ou mot de passe incorrect. Veuillez réessayer.");
+      setIsLoading(false);
+    } else if (result?.ok) {
+      // Si la connexion est réussie, on force un rechargement complet vers la page de destination
+      window.location.href = callbackUrl;
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-purple-50 flex items-center justify-center p-6">

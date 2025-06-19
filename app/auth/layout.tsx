@@ -1,7 +1,6 @@
-import type React from "react";
+// /app/auth/layout.tsx
 
-// Ce layout est plus simple, il n'a pas besoin de styles ou de providers
-// car il les hérite du layout racine (RootLayout).
+import type React from "react";
 
 export const metadata = {
   title: "Authentification - B2B Connect",
@@ -13,6 +12,7 @@ export default function AuthLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // On se contente de retourner les pages enfants (login, register, etc.)
+  // Ce layout hérite de tous les styles et providers du layout racine.
+  // Il n'a besoin que de retourner les enfants.
   return <>{children}</>;
 }
