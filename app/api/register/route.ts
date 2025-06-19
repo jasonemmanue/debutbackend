@@ -1,6 +1,6 @@
 // /app/api/register/route.ts
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs"; // <-- L'import corrigé
+import bcrypt from "bcryptjs"; 
 import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
