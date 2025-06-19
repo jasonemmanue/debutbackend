@@ -1,3 +1,5 @@
+// /app/auth/login/page.tsx
+
 "use client"
 
 import { Button } from "@/components/ui/button"
@@ -5,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Building2, Mail, Lock, ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 
@@ -14,7 +16,6 @@ export default function LoginPage() {
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // State pour le formulaire
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
@@ -22,33 +23,37 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get("callbackUrl") || "/"
 
+  // Affiche l'erreur de NextAuth si elle est présente dans l'URL
+  useEffect(() => {
+    const authError = searchParams.get("error");
+    if (authError) {
+      setError("Email ou mot de passe incorrect. Veuillez réessayer.");
+    }
+  }, [searchParams]);
+
   const handleOAuthLogin = (provider: "google") => {
     setIsLoading(true)
     setLoadingProvider(provider)
-    // Lance la connexion réelle via NextAuth
     signIn(provider, { callbackUrl })
   }
 
-const handleCredentialLogin = async (e: React.FormEvent) => {
+  // La fonction de connexion par identifiants que vous avez suggérée
+  const handleCredentialLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setLoadingProvider(null);
     setError(null);
 
-    const result = await signIn("credentials", {
-      redirect: false, // Important de garder `redirect: false` pour gérer le résultat
+    // On laisse NextAuth gérer la redirection.
+    await signIn("credentials", {
       email,
       password,
+      callbackUrl,
     });
-
-    if (result?.error) {
-      // Si NextAuth renvoie une erreur (ex: mauvais mot de passe)
-      setError("Email ou mot de passe incorrect. Veuillez réessayer.");
-      setIsLoading(false);
-    } else if (result?.ok) {
-      // Si la connexion est réussie, on force un rechargement complet vers la page de destination
-      window.location.href = callbackUrl;
-    }
+    
+    // Si la connexion échoue, NextAuth rechargera la page avec une erreur
+    // que notre `useEffect` attrapera. On remet isLoading à false au cas où la redirection n'a pas lieu.
+    setIsLoading(false);
   };
 
   return (
