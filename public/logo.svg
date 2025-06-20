@@ -1,0 +1,25 @@
+<svg width="48" height="48" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <!-- Définit le dégradé de couleur en utilisant les couleurs de votre projet -->
+  <defs>
+    <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <!-- Correspond à la couleur rose-500 de Tailwind CSS -->
+      <stop offset="0%" style="stop-color:#F43F5E;" />
+      <!-- Correspond à la couleur purple-500 de Tailwind CSS -->
+      <stop offset="100%" style="stop-color:#A855F7;" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Crée l'arrière-plan carré avec les coins arrondis, rempli avec le dégradé -->
+  <rect width="24" height="24" rx="5" fill="url(#logo-gradient)"/>
+  
+  <!-- Dessine l'icône du bâtiment en blanc par-dessus l'arrière-plan -->
+  <g stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18" />
+    <path d="M14 10h.01" />
+    <path d="M10 10h.01" />
+    <path d="M10 14h.01" />
+    <path d="M14 14h.01" />
+    <path d="M10 18h.01" />
+    <path d="M14 18h.01" />
+  </g>
+</svg>

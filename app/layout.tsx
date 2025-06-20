@@ -15,6 +15,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
+      <head>
+        {/* Ajout des balises pour l'icône SVG avec différentes tailles */}
+        <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+        <link rel="icon" href="/logo.svg" sizes="any" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/logo.svg" />
+        <link rel="mask-icon" href="/logo.svg" color="#F43F5E" />
+      </head>
       <body>
         <Providers>
           <Header />
