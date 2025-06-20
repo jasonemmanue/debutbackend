@@ -177,59 +177,6 @@ export default function TopCompaniesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-purple-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-rose-200/50 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-rose-400 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
-                <Building2 className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
-                  B2B Connect
-                </h1>
-                <p className="text-xs text-rose-500/70 font-medium">TOP ENTREPRISES</p>
-              </div>
-            </Link>
-
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link href="/" className="text-gray-600 hover:text-rose-600 transition-colors duration-300 font-medium">
-                Accueil
-              </Link>
-              <Link
-                href="/compagnies/categories"
-                className="text-gray-600 hover:text-rose-600 transition-colors duration-300 font-medium"
-              >
-                Catégories
-              </Link>
-              <Link href="/compagnies/top" className="text-rose-600 font-medium">
-                Top Entreprises
-              </Link>
-              <Link
-                href="/news"
-                className="text-gray-600 hover:text-rose-600 transition-colors duration-300 font-medium"
-              >
-                Actualités
-              </Link>
-            </nav>
-
-            <div className="flex items-center space-x-3">
-              <Link href="/auth/login">
-                <Button variant="ghost" className="text-gray-600 hover:text-rose-600">
-                  Se connecter
-                </Button>
-              </Link>
-              <Link href="/auth/register">
-                <Button className="bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white shadow-lg">
-                  S'inscrire
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Hero Section */}
       <section className="py-16 px-6 bg-gradient-to-r from-rose-500 to-purple-600 text-white">
         <div className="container mx-auto text-center">
@@ -428,7 +375,6 @@ export default function TopCompaniesPage() {
                 >
                   <CardContent className="p-6">
                     <div className="flex items-center space-x-6">
-                      {/* Rank */}
                       <div className="flex items-center space-x-3">
                         <div className="w-16 h-16 flex items-center justify-center bg-gradient-to-r from-rose-100 to-purple-100 rounded-2xl">
                           {getRankIcon(company.rank)}
@@ -440,7 +386,6 @@ export default function TopCompaniesPage() {
                         )}
                       </div>
 
-                      {/* Company Info */}
                       <div className="flex-1">
                         <div className="flex items-center space-x-4 mb-2">
                           <div className="w-12 h-12 rounded-xl overflow-hidden">
@@ -492,7 +437,6 @@ export default function TopCompaniesPage() {
                         </div>
                       </div>
 
-                      {/* Actions */}
                       <div className="flex items-center space-x-3">
                         <Button variant="outline" size="sm">
                           <Heart className="h-4 w-4" />
@@ -538,100 +482,13 @@ export default function TopCompaniesPage() {
             </Link>
             <Button
               size="lg"
-              variant="outline"
-              className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6"
+              className="bg-gray-900 text-white hover:bg-gray-700 font-semibold text-lg px-8 py-6"
             >
               Comment ça marche ?
             </Button>
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-6">
-        <div className="container mx-auto">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-rose-500 to-purple-500 rounded-lg flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-xl font-bold">B2B Connect</span>
-              </div>
-              <p className="text-gray-400">
-                Le réseau d'affaires de référence pour connecter les entreprises d'excellence
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4 text-rose-400">Classements</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/companies/top" className="hover:text-white transition-colors">
-                    Top entreprises
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/companies/top?period=week" className="hover:text-white transition-colors">
-                    Top de la semaine
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/companies/top?category=technology" className="hover:text-white transition-colors">
-                    Top Tech
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4 text-rose-400">Entreprises</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/companies/categories" className="hover:text-white transition-colors">
-                    Catégories
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/companies/partnership" className="hover:text-white transition-colors">
-                    Partenariats
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/auth/register" className="hover:text-white transition-colors">
-                    S'inscrire
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4 text-rose-400">Support</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/help" className="hover:text-white transition-colors">
-                    Aide
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/contact" className="hover:text-white transition-colors">
-                    Contact
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/terms" className="hover:text-white transition-colors">
-                    CGU
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 B2B Connect. Tous droits réservés.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

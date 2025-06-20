@@ -1,7 +1,7 @@
-// Fichier : app/layout.tsx
 import type { Metadata } from 'next'
 import './globals.css'
-import Providers from '@/app/Providers' // <-- Vérifiez que l'import est correct
+import Providers from '@/app/Providers'
+import { Header } from '@/components/Header'
 
 export const metadata: Metadata = {
   title: 'B2B Connect',
@@ -16,9 +16,9 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body>
-        {/* Cette ligne est cruciale ! */}
         <Providers>
-          {children}
+          <Header />
+          <main>{children}</main>
         </Providers>
       </body>
     </html>

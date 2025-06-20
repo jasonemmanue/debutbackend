@@ -12,7 +12,6 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
   Clock,
   Eye,
 } from "lucide-react"
@@ -20,7 +19,6 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { useSession } from "next-auth/react"
-import { AuthButtons } from "@/components/AuthButtons"
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -33,12 +31,12 @@ export default function HomePage() {
   const companyName = isCompany ? session?.user?.name : null
 
   const heroImages = [
-    "/placeholder.svg?height=800&width=1200&text=Entreprises+Tech",
-    "/placeholder.svg?height=800&width=1200&text=Réunions+Business",
-    "/placeholder.svg?height=800&width=1200&text=Networking+Events",
-    "/placeholder.svg?height=800&width=1200&text=Innovation+Hub",
-    "/placeholder.svg?height=800&width=1200&text=Success+Stories",
-  ]
+    "/entreprises.png",
+    "/reunions.png",
+    "/networkingevent.webp",
+    "/innovationhub.jpg", 
+    "/successstories.webp",
+  ];
 
   const newsSlides = [
     {
@@ -102,94 +100,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-purple-50">
-      {/* Header dynamique */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-rose-200/50 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-rose-400 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
-                <Building2 className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
-                  B2B Connect
-                </h1>
-                <p className="text-xs text-rose-500/70 font-medium">RÉSEAU D'EXCELLENCE</p>
-              </div>
-            </Link>
-
-            <nav className="hidden md:flex items-center space-x-8">
-              <div className="relative group">
-                <button className="flex items-center space-x-1 text-gray-600 hover:text-rose-600 transition-colors duration-300 font-medium">
-                  <span>Entreprises</span>
-                  <ChevronDown className="h-4 w-4 group-hover:rotate-180 transition-transform duration-300" />
-                </button>
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-rose-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                  <div className="p-4 space-y-3">
-                    <Link href="/compagnies/categories" className="flex items-center space-x-3 p-3 rounded-xl hover:bg-rose-50 transition-colors group/item">
-                     <div className="w-8 h-8 bg-gradient-to-r from-rose-400 to-purple-500 rounded-lg flex items-center justify-center">
-                       <Building2 className="h-4 w-4 text-white" />
-                      </div>
-                      <div>
-                       <h4 className="font-medium text-gray-800 group-hover/item:text-rose-600">Catégories</h4>
-                       <p className="text-xs text-gray-500">Parcourir par secteur</p>
-                     </div>
-                    </Link>
-                    <Link href="/compagnies/top" className="flex items-center space-x-3 p-3 rounded-xl hover:bg-rose-50 transition-colors group/item">
-                      <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-rose-500 rounded-lg flex items-center justify-center">
-                        <Star className="h-4 w-4 text-white" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-800 group-hover/item:text-rose-600">Top Entreprises</h4>
-                        <p className="text-xs text-gray-500">Classement des meilleures</p>
-                      </div>
-                    </Link>
-                    <Link href="/compagnies/partenership" className="flex items-center space-x-3 p-3 rounded-xl hover:bg-rose-50 transition-colors group/item">
-                      <div className="w-8 h-8 bg-gradient-to-r from-rose-400 to-purple-500 rounded-lg flex items-center justify-center">
-                        <Users className="h-4 w-4 text-white" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-800 group-hover/item:text-rose-600">Partenariats</h4>
-                        <p className="text-xs text-gray-500">Demande de collaboration</p>
-                      </div>
-                    </Link>
-                    <div className="border-t border-gray-100 pt-3">
-                      <Link href="/auth/register" className="flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-rose-500 to-purple-500 text-white rounded-xl hover:from-rose-600 hover:to-purple-600 transition-all duration-300">
-                        <Building2 className="h-4 w-4" />
-                        <span className="font-medium">Inscrire mon entreprise</span>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative group">
-                <button className="flex items-center space-x-1 text-gray-600 hover:text-rose-600 transition-colors duration-300 font-medium">
-                  <span>Services</span>
-                  <ChevronDown className="h-4 w-4 group-hover:rotate-180 transition-transform duration-300" />
-                </button>
-                <div className="absolute top-full left-0 mt-2 w-56 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-rose-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                  <div className="p-4 space-y-2">
-                    <Link href="/services/web" className="flex items-center space-x-3 p-3 rounded-xl hover:bg-rose-50 transition-colors group/item"><div className="w-2 h-2 bg-rose-500 rounded-full"></div><span className="text-gray-700 group-hover/item:text-rose-600">Développement Web</span></Link>
-                    <Link href="/services/mobile" className="flex items-center space-x-3 p-3 rounded-xl hover:bg-rose-50 transition-colors group/item"><div className="w-2 h-2 bg-purple-500 rounded-full"></div><span className="text-gray-700 group-hover/item:text-rose-600">Applications Mobile</span></Link>
-                    <Link href="/services/consulting" className="flex items-center space-x-3 p-3 rounded-xl hover:bg-rose-50 transition-colors group/item"><div className="w-2 h-2 bg-rose-500 rounded-full"></div><span className="text-gray-700 group-hover/item:text-rose-600">Consulting IT</span></Link>
-                    <Link href="/services/design" className="flex items-center space-x-3 p-3 rounded-xl hover:bg-rose-50 transition-colors group/item"><div className="w-2 h-2 bg-purple-500 rounded-full"></div><span className="text-gray-700 group-hover/item:text-rose-600">Design & UX</span></Link>
-                    <Link href="/services/marketing" className="flex items-center space-x-3 p-3 rounded-xl hover:bg-rose-50 transition-colors group/item"><div className="w-2 h-2 bg-rose-500 rounded-full"></div><span className="text-gray-700 group-hover/item:text-rose-600">Marketing Digital</span></Link>
-                  </div>
-                </div>
-              </div>
-              
-              <Link href="/news" className="text-gray-600 hover:text-rose-600 transition-colors duration-300 font-medium">Actualités</Link>
-              <Link href="/about" className="text-gray-600 hover:text-rose-600 transition-colors duration-300 font-medium">À propos</Link>
-            </nav>
-            
-            <AuthButtons />
-            
-          </div>
-        </div>
-      </header>
-      
+    <>
       {isCompany && companyName && (
         <div className="text-center py-4 bg-white/50 backdrop-blur-md">
           <h2 className="text-3xl font-serif italic text-purple-700 decoration-wavy underline decoration-rose-400">
@@ -199,7 +110,7 @@ export default function HomePage() {
       )}
 
       {/* Hero Section */}
-      <section className="relative py-20 px-6 overflow-hidden min-h-[80vh] flex items-center">
+      <section className="relative py-20 px-6 overflow-hidden min-h-[calc(100vh-81px)] flex items-center">
         <div className="absolute inset-0">
           {heroImages.map((image, index) => (
             <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentHeroSlide ? "opacity-100" : "opacity-0"}`}>
@@ -225,7 +136,7 @@ export default function HomePage() {
               </Button>
             </Link>
             <Link href="/auth/register">
-              <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6 backdrop-blur-sm transform hover:scale-105 transition-all duration-300">
+              <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6 [text-shadow:0_1px_3px_rgb(0_0_0_/_0.5)] transform hover:scale-105 transition-all duration-300">
                 Inscrire mon entreprise
               </Button>
             </Link>
@@ -255,7 +166,6 @@ export default function HomePage() {
         </button>
       </section>
 
-      {/* Reste de la page... (Top Entreprises, Actualités, etc.) */}
       <section className="py-16 px-6 bg-white">
         <div className="container mx-auto">
           <div className="text-center mb-12">
@@ -308,7 +218,9 @@ export default function HomePage() {
                                 <div className="flex items-center"><Clock className="h-4 w-4 mr-1" />{slide.date}</div>
                                 <div className="flex items-center"><Eye className="h-4 w-4 mr-1" />{slide.views} vues</div>
                               </div>
-                              <Button variant="ghost" className="text-rose-600 hover:text-rose-700 p-0">Lire plus →</Button>
+                              <Button variant="ghost" className="text-rose-600 hover:text-rose-700 p-0">
+                                Lire plus →
+                              </Button>
                             </div>
                           </div>
                         </div>
@@ -363,7 +275,7 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/auth/register"><Button size="lg" className="bg-white text-rose-600 hover:bg-rose-50 font-semibold text-lg px-8 py-6">Commencer maintenant</Button></Link>
-            <Link href="/auth/login"><Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6">En savoir plus</Button></Link>
+            <Link href="/auth/login"><Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6 [text-shadow:0_1px_3px_rgb(0_0_0_/_0.5)]">En savoir plus</Button></Link>
           </div>
         </div>
       </section>
@@ -410,6 +322,6 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
-    </div>
+    </>
   )
 }

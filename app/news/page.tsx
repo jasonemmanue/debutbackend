@@ -166,64 +166,19 @@ export default function NewsPage() {
   })
 
   const getCategoryColor = (category: string) => {
-    const colors = {
+    const colors: { [key: string]: string } = {
       tech: "bg-blue-100 text-blue-700",
       finance: "bg-green-100 text-green-700",
       health: "bg-red-100 text-red-700",
       energy: "bg-yellow-100 text-yellow-700",
       education: "bg-purple-100 text-purple-700",
     }
-    return colors[category as keyof typeof colors] || "bg-gray-100 text-gray-700"
+    return colors[category] || "bg-gray-100 text-gray-700"
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-purple-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-rose-200/50 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-rose-400 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
-                <Building2 className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-purple-600 bg-clip-text text-transparent">
-                  B2B Connect
-                </h1>
-                <p className="text-xs text-rose-500/70 font-medium">ACTUALITÉS</p>
-              </div>
-            </Link>
-
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link href="/" className="text-gray-600 hover:text-rose-600 transition-colors duration-300 font-medium">
-                Accueil
-              </Link>
-              <Link
-                href="/companies"
-                className="text-gray-600 hover:text-rose-600 transition-colors duration-300 font-medium"
-              >
-                Entreprises
-              </Link>
-              <Link href="/news" className="text-rose-600 font-medium">
-                Actualités
-              </Link>
-            </nav>
-
-            <div className="flex items-center space-x-3">
-              <Link href="/auth/login">
-                <Button variant="ghost" className="text-gray-600 hover:text-rose-600">
-                  Se connecter
-                </Button>
-              </Link>
-              <Link href="/auth/register">
-                <Button className="bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white shadow-lg">
-                  S'inscrire
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Le Header a été retiré, car il est maintenant dans app/layout.tsx */}
 
       {/* Hero Section */}
       <section className="py-16 px-6 bg-gradient-to-r from-rose-500 to-purple-600 text-white">
@@ -240,7 +195,6 @@ export default function NewsPage() {
             Restez informé des dernières innovations, partenariats et succès des entreprises de notre réseau
           </p>
 
-          {/* Search Bar */}
           <div className="max-w-2xl mx-auto">
             <div className="relative bg-white/95 backdrop-blur-md rounded-2xl p-2 shadow-2xl">
               <div className="flex items-center">
@@ -485,29 +439,24 @@ export default function NewsPage() {
                     </div>
                     <span>{news.readTime} de lecture</span>
                   </div>
-                  <li>
-                    <Link href="/auth/register">
-                     <Button variant="outline" className="w-full border-rose-300 text-rose-600 hover:bg-rose-50">
-                      Lire l'article
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                     </Button>
-                    </Link>
-                  </li>
+                  <Link href="/auth/register">
+                    <Button variant="outline" className="w-full border-rose-300 text-rose-600 hover:bg-rose-50">
+                     Lire l'article
+                     <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          {/* Load More Button */}
           <div className="text-center mt-12">
-            <li>
-              <Link href="/auth/register">
-                <Button size="lg" variant="outline" className="border-rose-300 text-rose-600 hover:bg-rose-50 px-8">
-                 Charger plus d'articles
-                 <ArrowRight className="ml-2 h-5 w-5" />
-               </Button>
-              </Link>
-            </li>
+            <Link href="/auth/register">
+              <Button size="lg" variant="outline" className="border-rose-300 text-rose-600 hover:bg-rose-50 px-8">
+                Charger plus d'articles
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -526,99 +475,15 @@ export default function NewsPage() {
               <input
                 type="email"
                 placeholder="Votre adresse email"
-                className="flex-1 px-4 py-3 rounded-l-xl text-gray-700 focus:outline-2"
+                className="flex-1 px-4 py-3 rounded-l-xl text-gray-700 focus:outline-none"
               />
               <Button className="bg-white text-rose-600 hover:bg-rose-50 px-5 rounded-r-xl">S'abonner</Button>
             </div>
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-6">
-        <div className="container mx-auto">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-rose-500 to-purple-500 rounded-lg flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-xl font-bold">B2B Connect</span>
-              </div>
-              <p className="text-gray-400">
-                Le réseau d'affaires de référence pour connecter les entreprises d'excellence
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4 text-rose-400">Actualités</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/news" className="hover:text-white transition-colors">
-                    Toutes les actualités
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/news?category=tech" className="hover:text-white transition-colors">
-                    Technologie
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/news?category=finance" className="hover:text-white transition-colors">
-                    Finance
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4 text-rose-400">Entreprises</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/companies" className="hover:text-white transition-colors">
-                    Annuaire
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/companies/top" className="hover:text-white transition-colors">
-                    Top entreprises
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/auth/register" className="hover:text-white transition-colors">
-                    S'inscrire
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4 text-rose-400">Support</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/help" className="hover:text-white transition-colors">
-                    Aide
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/contact" className="hover:text-white transition-colors">
-                    Contact
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/terms" className="hover:text-white transition-colors">
-                    CGU
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 B2B Connect. Tous droits réservés.</p>
-          </div>
-        </div>
-      </footer>
+      
+      {/* Le Footer a été retiré, car il est maintenant dans app/layout.tsx (implicitement) */}
     </div>
   )
 }
