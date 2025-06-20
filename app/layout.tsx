@@ -1,30 +1,20 @@
-import type { Metadata } from "next";
-import { SessionProvider } from "next-auth/react";
-import { auth } from "@/auth";
-import "./globals.css"; // C'est ici qu'on importe les styles globaux
+import type { Metadata } from 'next'
+import './globals.css'
 
 export const metadata: Metadata = {
-  title: "B2B Connect",
-  description: "Réseau d'Excellence",
-  generator: "v0.dev",
-};
+  title: 'v0 App',
+  description: 'Created with v0',
+  generator: 'v0.dev',
+}
 
-// Ce layout est le conteneur principal de TOUTE votre application
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
-  // On récupère la session sur le serveur pour la passer au client
-  const session = await auth();
-
   return (
-    <html lang="fr">
-      <body>
-        <SessionProvider session={session}>
-          {children}
-        </SessionProvider>
-      </body>
+    <html lang="en">
+      <body>{children}</body>
     </html>
-  );
+  )
 }
