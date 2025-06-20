@@ -20,21 +20,12 @@ import { useState, useEffect } from "react"
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [currentHeroSlide, setCurrentHeroSlide] = useState(0)
   const [currentBgSlide, setCurrentBgSlide] = useState(0)
  
   const isCompany = false;
   const companyName = null;
 
-  const heroImages = [
-    "/entreprises.png",
-    "/reunions.png",
-    "/networkingevent.webp",
-    "/innovationhub.jpg",
-    "/successstories.webp",
-  ];
-
-  // Images pour l'arrière-plan de la section TOP ENTREPRISES
+  // Images pour l'arrière-plan de la section hero
   const backgroundImages = [
     "https://images.unsplash.com/photo-1556761175-4b46a572b786?w=1200&h=800&fit=crop",
     "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1200&h=800&fit=crop",
@@ -83,20 +74,13 @@ export default function HomePage() {
   ]
 
   useEffect(() => {
-    const heroTimer = setInterval(() => {
-      setCurrentHeroSlide((prev) => (prev + 1) % heroImages.length)
-    }, 4000)
-    return () => clearInterval(heroTimer)
-  }, [heroImages.length])
-
-  useEffect(() => {
     const newsTimer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % newsSlides.length)
     }, 5000)
     return () => clearInterval(newsTimer)
   }, [newsSlides.length])
 
-  // Timer pour les images de fond de la section TOP ENTREPRISES
+  // Timer pour les images de fond de la section hero
   useEffect(() => {
     const bgTimer = setInterval(() => {
       setCurrentBgSlide((prev) => (prev + 1) % backgroundImages.length)
@@ -122,17 +106,17 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Hero Section */}
+      {/* Hero Section avec arrière-plan d'images */}
       <section className="relative py-20 px-6 overflow-hidden min-h-[calc(100vh-81px)] flex items-center">
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-r from-rose-900/60 via-purple-900/40 to-rose-900/60 z-0"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20 z-0"></div>
 
-          {heroImages.map((image, index) => (
-            <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentHeroSlide ? "opacity-100" : "opacity-0"}`}>
+          {backgroundImages.map((image, index) => (
+            <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentBgSlide ? "opacity-100" : "opacity-0"}`}>
               <img
                 src={image}
-                alt={`Hero slide ${index + 1}`}
+                alt={`Background slide ${index + 1}`}
                 className="absolute inset-0 w-full h-full object-cover"
               />
             </div>
@@ -173,39 +157,32 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+        
+        {/* Indicateurs pour les images de fond */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
           <div className="flex space-x-2">
-            {heroImages.map((_, index) => (
-              <button key={index} className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentHeroSlide ? "bg-white w-8 shadow-lg" : "bg-white/50 hover:bg-white/70"}`} onClick={() => setCurrentHeroSlide(index)} />
+            {backgroundImages.map((_, index) => (
+              <button 
+                key={index} 
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentBgSlide ? "bg-white w-8 shadow-lg" : "bg-white/50 hover:bg-white/70"}`} 
+                onClick={() => setCurrentBgSlide(index)} 
+              />
             ))}
           </div>
         </div>
-        <button className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm rounded-full p-3 hover:bg-white/30 transition-all duration-300" onClick={() => setCurrentHeroSlide((prev) => (prev - 1 + heroImages.length) % heroImages.length)}>
+        
+        {/* Boutons de navigation */}
+        <button className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm rounded-full p-3 hover:bg-white/30 transition-all duration-300" onClick={() => setCurrentBgSlide((prev) => (prev - 1 + backgroundImages.length) % backgroundImages.length)}>
           <ChevronLeft className="h-6 w-6 text-white" />
         </button>
-        <button className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm rounded-full p-3 hover:bg-white/30 transition-all duration-300" onClick={() => setCurrentHeroSlide((prev) => (prev + 1) % heroImages.length)}>
+        <button className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm rounded-full p-3 hover:bg-white/30 transition-all duration-300" onClick={() => setCurrentBgSlide((prev) => (prev + 1) % backgroundImages.length)}>
           <ChevronRight className="h-6 w-6 text-white" />
         </button>
       </section>
 
-      {/* Section TOP ENTREPRISES avec arrière-plan d'images */}
-      <section className="relative py-16 px-6 overflow-hidden">
-        {/* Arrière-plan avec images qui défilent */}
-        <div className="absolute inset-0">
-          {backgroundImages.map((image, index) => (
-            <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentBgSlide ? "opacity-100" : "opacity-0"}`}>
-              <img
-                src={image}
-                alt={`Background slide ${index + 1}`}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            </div>
-          ))}
-          {/* Overlay pour améliorer la lisibilité */}
-          <div className="absolute inset-0 bg-white/85 backdrop-blur-sm"></div>
-        </div>
-
-        <div className="relative z-10 container mx-auto">
+      {/* Section TOP ENTREPRISES sans arrière-plan d'images */}
+      <section className="py-16 px-6 bg-gradient-to-br from-rose-50 to-purple-50">
+        <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-light mb-4 text-gray-800">
               TOP <span className="font-normal text-rose-600">ENTREPRISES</span>
@@ -223,19 +200,6 @@ export default function HomePage() {
                   <p className="text-sm text-gray-500">{company.sector}</p>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Indicateurs pour les images de fond */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
-          <div className="flex space-x-2">
-            {backgroundImages.map((_, index) => (
-              <button 
-                key={index} 
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentBgSlide ? "bg-rose-500 w-6" : "bg-rose-300 hover:bg-rose-400"}`} 
-                onClick={() => setCurrentBgSlide(index)} 
-              />
             ))}
           </div>
         </div>
