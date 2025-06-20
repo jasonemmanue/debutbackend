@@ -19,10 +19,17 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Header } from "@/components/Header" // Importation du Header dynamique
+import { useSession } from "next-auth/react"
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [currentHeroSlide, setCurrentHeroSlide] = useState(0)
+  const { data: session } = useSession()
+
+  // @ts-ignore
+  const isCompany = session?.user?.type === 'entreprise'
+  // @ts-ignore
+  const companyName = isCompany ? session?.user?.name : null
 
   const heroImages = [
     "/placeholder.svg?height=800&width=1200&text=Entreprises+Tech",
@@ -96,6 +103,14 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-purple-50">
       <Header />
+      
+      {isCompany && companyName && (
+        <div className="text-center py-4 bg-white/50 backdrop-blur-md">
+          <h2 className="text-3xl font-serif italic text-purple-700 decoration-wavy underline decoration-rose-400">
+            {companyName}
+          </h2>
+        </div>
+      )}
       
       <section className="relative py-20 px-6 overflow-hidden min-h-[80vh] flex items-center">
         <div className="absolute inset-0">
