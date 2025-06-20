@@ -15,21 +15,22 @@ import {
   Clock,
   Eye,
 } from "lucide-react"
-import Link from "next/link"
 import { useState, useEffect } from "react"
-import Image from "next/image"
-import { useSession } from "next-auth/react"
+
+// REMARQUE: Les composants 'next/link' et 'next/image' ont été remplacés 
+// par des balises HTML standard (<a> et <img>) pour assurer la compatibilité 
+// avec l'environnement de prévisualisation. Dans votre projet Next.js, 
+// il est recommandé d'utiliser les composants originaux.
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [currentHeroSlide, setCurrentHeroSlide] = useState(0)
-  const { data: session } = useSession()
+  
+  // La logique de session est temporairement retirée pour la prévisualisation.
+  const isCompany = false;
+  const companyName = null;
 
-  // @ts-ignore
-  const isCompany = session?.user?.type === 'entreprise'
-  // @ts-ignore
-  const companyName = isCompany ? session?.user?.name : null
-
+  // IMPORTANT : Assurez-vous que ces fichiers existent bien dans votre dossier /public
   const heroImages = [
     "/entreprises.png",
     "/reunions.png",
@@ -44,7 +45,7 @@ export default function HomePage() {
       title: "TechCorp lance sa nouvelle solution IA",
       company: "TechCorp Solutions",
       excerpt: "Une révolution dans l'automatisation des processus métier avec une IA de dernière génération.",
-      image: "/placeholder.svg?height=200&width=300",
+      image: "https://placehold.co/600x400/E9D5FF/3730A3?text=Nouveauté+IA",
       date: "Il y a 2 heures",
       views: "1.2k",
     },
@@ -53,7 +54,7 @@ export default function HomePage() {
       title: "GreenEnergy signe un contrat majeur",
       company: "GreenEnergy France",
       excerpt: "Partenariat stratégique pour l'installation de 500 MW d'énergie solaire en région PACA.",
-      image: "/placeholder.svg?height=200&width=300",
+      image: "https://placehold.co/600x400/A7F3D0/047857?text=Énergie+Solaire",
       date: "Il y a 4 heures",
       views: "856",
     },
@@ -62,19 +63,19 @@ export default function HomePage() {
       title: "FinanceMax ouvre ses bureaux à Lyon",
       company: "FinanceMax Group",
       excerpt: "Expansion nationale avec l'ouverture d'un nouveau centre de services financiers.",
-      image: "/placeholder.svg?height=200&width=300",
+      image: "https://placehold.co/600x400/FBCFE8/9D174D?text=Finance+Expansion",
       date: "Il y a 6 heures",
       views: "642",
     },
   ]
 
   const topCompanies = [
-    { name: "TechCorp", logo: "/placeholder.svg?height=80&width=80", sector: "Technologie" },
-    { name: "GreenEnergy", logo: "/placeholder.svg?height=80&width=80", sector: "Énergie" },
-    { name: "FinanceMax", logo: "/placeholder.svg?height=80&width=80", sector: "Finance" },
-    { name: "HealthPlus", logo: "/placeholder.svg?height=80&width=80", sector: "Santé" },
-    { name: "EduSmart", logo: "/placeholder.svg?height=80&width=80", sector: "Éducation" },
-    { name: "RetailPro", logo: "/placeholder.svg?height=80&width=80", sector: "Commerce" },
+    { name: "TechCorp", logo: "https://placehold.co/80x80/E0E7FF/3730A3?text=TC", sector: "Technologie" },
+    { name: "GreenEnergy", logo: "https://placehold.co/80x80/D1FAE5/065F46?text=GE", sector: "Énergie" },
+    { name: "FinanceMax", logo: "https://placehold.co/80x80/FEF2F2/991B1B?text=FM", sector: "Finance" },
+    { name: "HealthPlus", logo: "https://placehold.co/80x80/FEFEE2/854D0E?text=HP", sector: "Santé" },
+    { name: "EduSmart", logo: "https://placehold.co/80x80/F5F3FF/5B21B6?text=ES", sector: "Éducation" },
+    { name: "RetailPro", logo: "https://placehold.co/80x80/FFF1F2/9F1239?text=RP", sector: "Commerce" },
   ]
 
   useEffect(() => {
@@ -112,13 +113,18 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative py-20 px-6 overflow-hidden min-h-[calc(100vh-81px)] flex items-center">
         <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-r from-rose-900/60 via-purple-900/40 to-rose-900/60 z-0"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20 z-0"></div>
+
           {heroImages.map((image, index) => (
             <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentHeroSlide ? "opacity-100" : "opacity-0"}`}>
-              <Image src={image || "/placeholder.svg"} alt={`Hero slide ${index + 1}`} fill className="object-cover" priority={index === 0} />
+              <img 
+                src={image} 
+                alt={`Hero slide ${index + 1}`} 
+                className="absolute inset-0 w-full h-full object-cover"
+              />
             </div>
           ))}
-          <div className="absolute inset-0 bg-gradient-to-r from-rose-900/60 via-purple-900/40 to-rose-900/60"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20"></div>
         </div>
         <div className="relative z-10 container mx-auto text-center text-white">
           <Badge className="mb-6 bg-white/20 text-white border-white/30 backdrop-blur-sm animate-pulse">🌟 Plateforme de mise en relation B2B</Badge>
@@ -130,16 +136,20 @@ export default function HomePage() {
             Connectez-vous avec les meilleures entreprises de votre secteur et développez votre réseau professionnel avec excellence.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link href="/auth/register">
+            <a href="/auth/register">
               <Button size="lg" className="bg-white text-rose-600 hover:bg-rose-50 font-semibold text-lg px-8 py-6 shadow-xl transform hover:scale-105 transition-all duration-300">
                 Découvrir les entreprises <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-            </Link>
-            <Link href="/auth/register">
-              <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6 [text-shadow:0_1px_3px_rgb(0_0_0_/_0.5)] transform hover:scale-105 transition-all duration-300">
-                Inscrire mon entreprise
-              </Button>
-            </Link>
+            </a>
+            <a href="/auth/register">
+              <Button 
+  size="lg" 
+  variant="outline" 
+  className="border-2 border-white text-black hover:text-white hover:bg-white/10 text-lg px-8 py-6 hover:[text-shadow:0_1px_3px_rgb(0_0_0_/_0.5)] transform hover:scale-105 transition-all duration-300"
+>
+  Inscrire mon entreprise
+</Button>
+            </a>
           </div>
           <div className="max-w-2xl mx-auto">
             <div className="relative bg-white/95 backdrop-blur-md rounded-2xl p-2 shadow-2xl">
@@ -179,7 +189,7 @@ export default function HomePage() {
               <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-rose-100 hover:border-rose-300">
                 <CardContent className="p-6 text-center">
                   <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-rose-100 to-purple-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Image src={company.logo || "/placeholder.svg"} alt={company.name} width={40} height={40} className="rounded-lg" />
+                    <img src={company.logo} alt={company.name} width={40} height={40} className="rounded-lg" />
                   </div>
                   <h3 className="font-semibold text-gray-800 mb-1">{company.name}</h3>
                   <p className="text-sm text-gray-500">{company.sector}</p>
@@ -207,7 +217,7 @@ export default function HomePage() {
                       <CardContent className="p-0">
                         <div className="grid md:grid-cols-2 gap-0">
                           <div className="relative h-64 md:h-80">
-                            <Image src={slide.image || "/placeholder.svg"} alt={slide.title} fill className="object-cover" />
+                            <img src={slide.image} alt={slide.title} className="object-cover w-full h-full" />
                           </div>
                           <div className="p-8 flex flex-col justify-center bg-white">
                             <Badge className="w-fit mb-4 bg-rose-100 text-rose-700 hover:bg-rose-100">{slide.company}</Badge>
@@ -274,8 +284,16 @@ export default function HomePage() {
             Développez votre activité en vous connectant avec les meilleures entreprises de votre secteur
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth/register"><Button size="lg" className="bg-white text-rose-600 hover:bg-rose-50 font-semibold text-lg px-8 py-6">Commencer maintenant</Button></Link>
-            <Link href="/auth/login"><Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6 [text-shadow:0_1px_3px_rgb(0_0_0_/_0.5)]">En savoir plus</Button></Link>
+            <a href="/auth/register"><Button size="lg" className="bg-white text-rose-600 hover:bg-rose-50 font-semibold text-lg px-8 py-6">Commencer maintenant</Button></a>
+            <a href="/auth/login">
+  <Button 
+    size="lg" 
+    variant="outline" 
+    className="border-2 border-white text-black hover:text-black hover:bg-transparent text-lg px-8 py-6"
+  >
+    En savoir plus
+  </Button>
+</a>
           </div>
         </div>
       </section>
@@ -295,25 +313,25 @@ export default function HomePage() {
             <div>
               <h4 className="font-semibold mb-4 text-rose-400">Entreprises</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="#" className="hover:text-white transition-colors">S'inscrire</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Tarifs</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Fonctionnalités</Link></li>
+                <li><a href="#" className="hover:text-white transition-colors">S'inscrire</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Tarifs</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Fonctionnalités</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4 text-rose-400">Clients</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="#" className="hover:text-white transition-colors">Rechercher</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Secteurs</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Actualités</Link></li>
+                <li><a href="#" className="hover:text-white transition-colors">Rechercher</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Secteurs</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Actualités</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4 text-rose-400">Support</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="#" className="hover:text-white transition-colors">Aide</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Contact</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">CGU</Link></li>
+                <li><a href="#" className="hover:text-white transition-colors">Aide</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">CGU</a></li>
               </ul>
             </div>
           </div>
