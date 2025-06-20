@@ -1,3 +1,4 @@
+// auth.ts
 import NextAuth from 'next-auth';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { PrismaClient } from '@prisma/client';
@@ -38,7 +39,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, user }) {
       if (session.user) {
         session.user.id = user.id;
-        session.user.image = user.image;
+        // @ts-ignore - Le type est défini dans notre modèle User
+        session.user.type = user.type; 
       }
       return session;
     },

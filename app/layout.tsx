@@ -1,10 +1,11 @@
+// Fichier : app/layout.tsx
 import type { Metadata } from 'next'
 import './globals.css'
+import Providers from '@/app/Providers' // <-- Vérifiez que l'import est correct
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'B2B Connect',
+  description: "Réseau d'excellence pour les entreprises.",
 }
 
 export default function RootLayout({
@@ -13,8 +14,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="fr">
+      <body>
+        {/* Cette ligne est cruciale ! */}
+        <Providers>
+          {children}
+        </Providers>
+      </body>
     </html>
   )
 }

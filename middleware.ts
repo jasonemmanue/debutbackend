@@ -2,43 +2,49 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Le rôle de ce middleware est TRES simple : il vérifie juste si un cookie
-// de session existe. Il ne touche PAS à la base de données, ce qui résout l'erreur.
 export function middleware(request: NextRequest) {
-  // Détermine le nom du cookie de session (il change si on utilise un préfixe sécurisé)
+  // Détermine le nom du cookie de session
   const sessionCookieName = process.env.AUTH_SECRET
     ? `__Secure-authjs.session-token`
     : `authjs.session-token`;
 
   const sessionCookie = request.cookies.get(sessionCookieName);
-  const isLoggedIn = !!sessionCookie; // L'utilisateur est considéré comme connecté si le cookie existe
-
+  const isLoggedIn = !!sessionCookie;
   const { pathname } = request.nextUrl;
 
-  // Routes d'authentification (/login, /register, etc.)
+  // Définition des routes publiques (accessibles sans connexion)
+  const isPublicRoute = 
+    pathname === '/' ||
+    pathname.startsWith('/compagnies') ||
+    pathname.startsWith('/company') ||
+    pathname.startsWith('/news') ||
+    pathname.startsWith('/about') ||
+    pathname.startsWith('/services');
+
+  // Définition des routes d'authentification
   const isAuthRoute = pathname.startsWith('/auth');
-  
-  if (isAuthRoute) {
-    // Si l'utilisateur est déjà connecté et essaie d'aller sur /login,
-    // on le redirige vers la page d'accueil.
-    if (isLoggedIn) {
-      return NextResponse.redirect(new URL('/', request.url));
-    }
-    // Sinon, on le laisse accéder à la page de connexion/inscription.
+
+  // 1. Si l'utilisateur est connecté et va sur une page d'authentification, on le redirige vers l'accueil.
+  if (isAuthRoute && isLoggedIn) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  // 2. Si la route est publique ou d'authentification, on laisse passer.
+  if (isPublicRoute || isAuthRoute) {
     return NextResponse.next();
   }
 
-  // Si l'utilisateur n'est PAS connecté et essaie d'accéder à une page protégée
-  if (!isLoggedIn && pathname !== '/') {
-    // On le renvoie vers la page de connexion
+  // 3. Si la route n'est ni publique ni d'authentification, ET que l'utilisateur n'est pas connecté,
+  // on le redirige vers la page de connexion.
+  if (!isLoggedIn) {
     return NextResponse.redirect(new URL('/auth/login', request.url));
   }
 
-  // Dans tous les autres cas (utilisateur connecté, ou accédant à la page d'accueil), on le laisse passer.
+  // 4. Si l'utilisateur est connecté et accède à une page protégée, on le laisse passer.
   return NextResponse.next();
 }
 
-// Le matcher applique ce middleware à toutes les routes SAUF celles spécifiées (api, _next, etc.)
+// Le matcher applique ce middleware à toutes les routes SAUF celles spécifiées.
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
