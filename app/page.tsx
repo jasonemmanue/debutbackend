@@ -1,5 +1,6 @@
 "use client"
 
+import React from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -17,26 +18,29 @@ import {
 } from "lucide-react"
 import { useState, useEffect } from "react"
 
-// REMARQUE: Les composants 'next/link' et 'next/image' ont été remplacés 
-// par des balises HTML standard (<a> et <img>) pour assurer la compatibilité 
-// avec l'environnement de prévisualisation. Dans votre projet Next.js, 
-// il est recommandé d'utiliser les composants originaux.
-
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [currentHeroSlide, setCurrentHeroSlide] = useState(0)
-  
-  // La logique de session est temporairement retirée pour la prévisualisation.
+  const [currentBgSlide, setCurrentBgSlide] = useState(0)
+ 
   const isCompany = false;
   const companyName = null;
 
-  // IMPORTANT : Assurez-vous que ces fichiers existent bien dans votre dossier /public
   const heroImages = [
     "/entreprises.png",
     "/reunions.png",
     "/networkingevent.webp",
-    "/innovationhub.jpg", 
+    "/innovationhub.jpg",
     "/successstories.webp",
+  ];
+
+  // Images pour l'arrière-plan de la section TOP ENTREPRISES
+  const backgroundImages = [
+    "https://images.unsplash.com/photo-1556761175-4b46a572b786?w=1200&h=800&fit=crop",
+    "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1200&h=800&fit=crop",
+    "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&h=800&fit=crop",
+    "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&h=800&fit=crop",
+    "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=1200&h=800&fit=crop",
   ];
 
   const newsSlides = [
@@ -92,6 +96,14 @@ export default function HomePage() {
     return () => clearInterval(newsTimer)
   }, [newsSlides.length])
 
+  // Timer pour les images de fond de la section TOP ENTREPRISES
+  useEffect(() => {
+    const bgTimer = setInterval(() => {
+      setCurrentBgSlide((prev) => (prev + 1) % backgroundImages.length)
+    }, 3000)
+    return () => clearInterval(bgTimer)
+  }, [backgroundImages.length])
+
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % newsSlides.length)
   }
@@ -118,9 +130,9 @@ export default function HomePage() {
 
           {heroImages.map((image, index) => (
             <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentHeroSlide ? "opacity-100" : "opacity-0"}`}>
-              <img 
-                src={image} 
-                alt={`Hero slide ${index + 1}`} 
+              <img
+                src={image}
+                alt={`Hero slide ${index + 1}`}
                 className="absolute inset-0 w-full h-full object-cover"
               />
             </div>
@@ -142,13 +154,13 @@ export default function HomePage() {
               </Button>
             </a>
             <a href="/auth/register">
-              <Button 
-  size="lg" 
-  variant="outline" 
-  className="border-2 border-white text-black hover:text-white hover:bg-white/10 text-lg px-8 py-6 hover:[text-shadow:0_1px_3px_rgb(0_0_0_/_0.5)] transform hover:scale-105 transition-all duration-300"
->
-  Inscrire mon entreprise
-</Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-2 border-white text-black hover:text-white hover:bg-white/10 text-lg px-8 py-6 hover:[text-shadow:0_1px_3px_rgb(0_0_0_/_0.5)] transform hover:scale-105 transition-all duration-300"
+              >
+                Inscrire mon entreprise
+              </Button>
             </a>
           </div>
           <div className="max-w-2xl mx-auto">
@@ -176,8 +188,24 @@ export default function HomePage() {
         </button>
       </section>
 
-      <section className="py-16 px-6 bg-white">
-        <div className="container mx-auto">
+      {/* Section TOP ENTREPRISES avec arrière-plan d'images */}
+      <section className="relative py-16 px-6 overflow-hidden">
+        {/* Arrière-plan avec images qui défilent */}
+        <div className="absolute inset-0">
+          {backgroundImages.map((image, index) => (
+            <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentBgSlide ? "opacity-100" : "opacity-0"}`}>
+              <img
+                src={image}
+                alt={`Background slide ${index + 1}`}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            </div>
+          ))}
+          {/* Overlay pour améliorer la lisibilité */}
+          <div className="absolute inset-0 bg-white/85 backdrop-blur-sm"></div>
+        </div>
+
+        <div className="relative z-10 container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-light mb-4 text-gray-800">
               TOP <span className="font-normal text-rose-600">ENTREPRISES</span>
@@ -186,7 +214,7 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
             {topCompanies.map((company, index) => (
-              <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-rose-100 hover:border-rose-300">
+              <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-rose-100 hover:border-rose-300 bg-white/90 backdrop-blur-sm">
                 <CardContent className="p-6 text-center">
                   <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-rose-100 to-purple-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <img src={company.logo} alt={company.name} width={40} height={40} className="rounded-lg" />
@@ -195,6 +223,19 @@ export default function HomePage() {
                   <p className="text-sm text-gray-500">{company.sector}</p>
                 </CardContent>
               </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Indicateurs pour les images de fond */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
+          <div className="flex space-x-2">
+            {backgroundImages.map((_, index) => (
+              <button 
+                key={index} 
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentBgSlide ? "bg-rose-500 w-6" : "bg-rose-300 hover:bg-rose-400"}`} 
+                onClick={() => setCurrentBgSlide(index)} 
+              />
             ))}
           </div>
         </div>
@@ -286,18 +327,18 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="/auth/register"><Button size="lg" className="bg-white text-rose-600 hover:bg-rose-50 font-semibold text-lg px-8 py-6">Commencer maintenant</Button></a>
             <a href="/auth/login">
-  <Button 
-    size="lg" 
-    variant="outline" 
-    className="border-2 border-white text-black hover:text-black hover:bg-transparent text-lg px-8 py-6"
-  >
-    En savoir plus
-  </Button>
-</a>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-2 border-white text-black hover:text-black hover:bg-transparent text-lg px-8 py-6"
+              >
+                En savoir plus
+              </Button>
+            </a>
           </div>
         </div>
       </section>
-      
+     
       <footer className="bg-gray-900 text-white py-12 px-6">
         <div className="container mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
