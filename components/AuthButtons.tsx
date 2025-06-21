@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { LogOut, UserCircle } from "lucide-react";
+import { LogOut, UserCircle, Settings } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,17 +24,7 @@ export function AuthButtons() {
     setMounted(true);
   }, []);
 
-  // --- Outil de débogage ---
-  // Surveillez la console de votre navigateur (F12) pour ces messages.
-  useEffect(() => {
-    if (mounted) {
-      console.log("[AuthButtons] Status:", status);
-      console.log("[AuthButtons] Session:", session);
-    }
-  }, [status, session, mounted]);
-
-  // Affiche un placeholder pour éviter les erreurs d'hydratation
-  if (!mounted) {
+  if (!mounted || status === "loading") {
     return (
       <div className="flex items-center space-x-3 h-10">
         <Skeleton className="h-9 w-24" />
@@ -43,35 +33,47 @@ export function AuthButtons() {
     );
   }
 
-  // Si l'utilisateur est authentifié, on affiche le menu profil
   if (status === "authenticated") {
+    const user = session.user;
+    // Cette ligne ne sera plus soulignée en rouge grâce au fichier next-auth.d.ts
+    const isCompany = user?.type === 'entreprise' || user?.type === 'employe';
+
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            <Image
-              src={session.user?.image || "/placeholder.svg?text=U"}
-              alt={session.user?.name || "User Avatar"}
-              fill
-              className="rounded-full object-cover"
-            />
+            {/* Si l'utilisateur a une image, on l'affiche, sinon on affiche l'icône par défaut */}
+            {user?.image ? (
+              <Image
+                src={user.image}
+                alt={user.name || "User Avatar"}
+                fill
+                className="rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center">
+                <UserCircle className="h-8 w-8 text-white" />
+              </div>
+            )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">
-                {session.user?.name}
+                {user?.name}
               </p>
               <p className="text-xs leading-none text-muted-foreground">
-                {session.user?.email}
+                {user?.email}
               </p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <UserCircle className="mr-2 h-4 w-4" />
-            <span>Mon Profil</span>
+          <DropdownMenuItem asChild>
+             <Link href={isCompany ? "/dashboard/company" : "/dashboard/client/profile"}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>{isCompany ? "Dashboard Entreprise" : "Mon Profil"}</span>
+             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/' })}>
@@ -83,7 +85,6 @@ export function AuthButtons() {
     );
   }
 
-  // Sinon, on affiche les boutons de connexion
   return (
     <div className="flex items-center space-x-3">
       <Button asChild variant="ghost" className="text-gray-600 hover:text-rose-600">
