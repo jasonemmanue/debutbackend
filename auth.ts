@@ -26,56 +26,61 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "text" },
         password: {  label: "Password", type: "password" }
       },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) return null;
-        
-        const email = credentials.email as string;
-        const password = credentials.password as string;
+      async authorize(credentials, request: Request) {
+        // CORRECTION FINALE : Utilisation d'une garde de type robuste
+        // On vérifie que `credentials` existe et que `email` et `password` sont bien des chaînes de caractères.
+        if (
+          !credentials ||
+          typeof credentials.email !== 'string' ||
+          typeof credentials.password !== 'string'
+        ) {
+          // Si les types ne sont pas corrects, on ne continue pas.
+          return null;
+        }
+
+        // Après cette garde, TypeScript sait que `credentials.email` et `credentials.password` sont des `string`.
+        const { email, password } = credentials;
 
         const user = await prisma.user.findUnique({
           where: { email },
         });
 
-        if (!user || !user.mot_de_passe) return null;
+        if (!user || !user.mot_de_passe) {
+          return null;
+        }
         
         const passwordsMatch = await bcrypt.compare(password, user.mot_de_passe);
         
-        if (passwordsMatch) return user;
+        if (passwordsMatch) {
+          const { mot_de_passe, ...userWithoutPassword } = user;
+          return userWithoutPassword;
+        }
         
         return null;
       },
     }),
   ],
   callbacks: {
-    async signIn({ user, account, isNewUser }) {
-      if (account?.provider === 'google' && isNewUser) {
-        return true; 
-      }
-      return true;
-    },
-    
-    // CORRECTION APPLIQUÉE ICI
     async jwt({ token, user, trigger, session }) {
-      // Si l'utilisateur vient de se connecter, on ajoute ses infos au token
       if (user) {
         token.id = user.id;
         token.type = (user as User).type;
       }
-
-      // Si la session est mise à jour (ex: après la complétion du profil)
       if (trigger === "update" && session?.type) {
         token.type = session.type as TypeAbonne;
       }
-      
       return token;
     },
 
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.type = token.type as TypeAbonne;
-      }
-      return session;
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: token.id as string,
+          type: token.type as TypeAbonne,
+        },
+      };
     },
   },
 });

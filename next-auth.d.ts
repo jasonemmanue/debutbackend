@@ -1,3 +1,5 @@
+// next-auth.d.ts
+
 import type { TypeAbonne } from "@prisma/client";
 import { type DefaultSession } from "next-auth";
 
@@ -8,8 +10,8 @@ declare module "next-auth" {
    */
   interface Session {
     user: {
-      /** Le rôle de l'utilisateur (entreprise, particulier, etc.) */
-      type: TypeAbonne;
+      /** Le rôle de l'utilisateur (peut être null si non défini) */
+      type: TypeAbonne | null; // CORRECTION : Autoriser null
       /** L'ID de l'utilisateur dans la base de données */
       id: string;
     } & DefaultSession["user"]; // Conserve les champs par défaut (name, email, image)
@@ -17,7 +19,8 @@ declare module "next-auth" {
 
   // Vous pouvez aussi étendre le type User si nécessaire
   interface User {
-    type: TypeAbonne;
+     /** Le rôle de l'utilisateur (peut être null si non défini) */
+    type: TypeAbonne | null; // CORRECTION : Autoriser null
   }
 }
 
@@ -25,7 +28,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     /** Le rôle de l'utilisateur */
-    type: TypeAbonne;
+    type: TypeAbonne | null; // CORRECTION : Autoriser null
     /** L'ID de l'utilisateur */
     id: string;
   }

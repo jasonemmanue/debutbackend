@@ -1,3 +1,4 @@
+// /app/auth/complete-profile/page.tsx
 "use client";
 
 import React, { useState } from 'react';
@@ -5,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, User, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -13,6 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function CompleteProfilePage() {
   const { data: session, update } = useSession();
@@ -21,7 +24,7 @@ export default function CompleteProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Form data
+  // Données du formulaire pour l'entreprise
   const [raisonSociale, setRaisonSociale] = useState('');
   const [siret, setSiret] = useState('');
   const [secteur, setSecteur] = useState('');
@@ -32,7 +35,7 @@ export default function CompleteProfilePage() {
     setIsLoading(true);
     setError(null);
     
-    // Validation
+    // Validation des champs
     if (!userType) {
         setError("Veuillez choisir un type de profil.");
         setIsLoading(false);
@@ -50,21 +53,21 @@ export default function CompleteProfilePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: userType,
-          // Inclure les données spécifiques au type
           ...(userType === 'entreprise' && { raison_sociale: raisonSociale, siret, secteur_activite: secteur, telephone }),
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Une erreur est survenue.');
+        throw new Error(errorData.message || 'Une erreur est survenue lors de la mise à jour du profil.');
       }
       
-      // Mettre à jour la session côté client pour refléter le nouveau type
+      // Met à jour la session côté client pour refléter le nouveau rôle
       await update({ type: userType });
 
-      // Redirection vers le dashboard approprié
-      router.push(userType === 'entreprise' ? '/dashboard/company' : '/dashboard/client/profile');
+      // Redirige l'utilisateur vers son dashboard approprié
+      router.push(userType === 'entreprise' ? '/company' : '/client/profile');
+      router.refresh(); // Force un rafraîchissement pour charger la bonne page
 
     } catch (err: any) {
       setError(err.message);
@@ -72,6 +75,14 @@ export default function CompleteProfilePage() {
       setIsLoading(false);
     }
   };
+
+  if (!session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-purple-50 flex items-center justify-center p-6">
@@ -83,7 +94,7 @@ export default function CompleteProfilePage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="text-sm font-medium">Je suis un(e)...</label>
+              <Label>Je suis un(e)...</Label>
               <Select onValueChange={setUserType} value={userType}>
                 <SelectTrigger className="w-full mt-2">
                   <SelectValue placeholder="Sélectionnez votre type de profil" />
@@ -97,28 +108,28 @@ export default function CompleteProfilePage() {
             </div>
             
             {userType === 'entreprise' && (
-              <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
-                 <h3 className="font-semibold">Informations sur l'entreprise</h3>
-                 <div>
-                   <label>Raison Sociale*</label>
-                   <input value={raisonSociale} onChange={(e) => setRaisonSociale(e.target.value)} className="w-full px-4 py-2 mt-1 border rounded-md" />
+              <div className="space-y-4 p-4 border rounded-lg bg-gray-50/50 animate-in fade-in-50">
+                 <h3 className="font-semibold text-gray-700">Informations sur l'entreprise</h3>
+                 <div className="space-y-1">
+                   <Label htmlFor="raisonSociale">Raison Sociale*</Label>
+                   <Input id="raisonSociale" value={raisonSociale} onChange={(e) => setRaisonSociale(e.target.value)} required />
                  </div>
-                 <div>
-                   <label>SIRET*</label>
-                   <input value={siret} onChange={(e) => setSiret(e.target.value)} className="w-full px-4 py-2 mt-1 border rounded-md" />
+                 <div className="space-y-1">
+                   <Label htmlFor="siret">SIRET*</Label>
+                   <Input id="siret" value={siret} onChange={(e) => setSiret(e.target.value)} required />
                  </div>
-                 <div>
-                   <label>Secteur d'activité</label>
-                   <input value={secteur} onChange={(e) => setSecteur(e.target.value)} className="w-full px-4 py-2 mt-1 border rounded-md" />
+                 <div className="space-y-1">
+                   <Label htmlFor="secteur">Secteur d'activité</Label>
+                   <Input id="secteur" value={secteur} onChange={(e) => setSecteur(e.target.value)} />
                  </div>
-                 <div>
-                   <label>Téléphone</label>
-                   <input value={telephone} onChange={(e) => setTelephone(e.target.value)} className="w-full px-4 py-2 mt-1 border rounded-md" />
+                 <div className="space-y-1">
+                   <Label htmlFor="telephone">Téléphone</Label>
+                   <Input id="telephone" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
                  </div>
               </div>
             )}
             
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
             <Button type="submit" disabled={isLoading || !userType} className="w-full bg-gradient-to-r from-rose-500 to-purple-500 text-white">
               {isLoading ? <Loader2 className="animate-spin" /> : 'Continuer vers mon espace'}

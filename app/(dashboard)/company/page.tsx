@@ -1,89 +1,82 @@
-"use client";
-
-import { useSession } from "next-auth/react";
+// /app/(dashboard)/company/page.tsx
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import { PrismaClient } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, PlusCircle, Edit, ExternalLink } from "lucide-react";
+import { Building2, PlusCircle, Edit, ExternalLink, Mail, Phone, MapPin, Hash } from "lucide-react";
 import Link from "next/link";
-import { Skeleton } from "@/components/ui/skeleton";
 
-export default function CompanyDashboardPage() {
-    const { data: session, status } = useSession();
+const prisma = new PrismaClient();
 
-    if (status === "loading") {
-        return (
-            <div className="container mx-auto py-12 px-6">
-                <Skeleton className="h-10 w-1/3 mb-8" />
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <Skeleton className="h-48 w-full" />
-                    <Skeleton className="h-48 w-full" />
-                    <Skeleton className="h-48 w-full" />
-                </div>
-            </div>
-        );
+export default async function CompanyDashboardPage() {
+    const session = await auth();
+
+    // Rediriger si l'utilisateur n'est pas connecté ou n'est pas une entreprise/employé
+    if (!session?.user || (session.user.type !== 'entreprise' && session.user.type !== 'employe')) {
+        redirect('/auth/login');
     }
-    
-    if (status !== "authenticated" || !session.user) {
-        return <p>Accès non autorisé.</p>;
+
+    // Récupérer les informations complètes de l'entreprise depuis la base de données
+    const companyProfile = await prisma.entreprise.findUnique({
+        where: { userId: session.user.id },
+    });
+
+    if (!companyProfile) {
+        // Cela peut arriver si les données sont inconsistantes, rediriger vers la complétion
+        redirect('/auth/complete-profile');
     }
-    
-    const companyId = "exemple-id"; // TODO: Remplacez par l'ID réel de l'entreprise depuis la base de données
 
     return (
         <div className="container mx-auto py-12 px-6 bg-gray-50 min-h-screen">
             <header className="mb-12">
-                <h1 className="text-4xl font-bold text-gray-800">Dashboard de {session.user.name}</h1>
+                <h1 className="text-4xl font-bold text-gray-800">Dashboard de {companyProfile.raison_sociale || session.user.name}</h1>
                 <p className="text-lg text-gray-600">Gérez toutes les activités de votre entreprise ici.</p>
             </header>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {/* Carte de gestion de profil */}
-                <Card className="hover:shadow-lg transition-shadow">
+            <div className="grid md:grid-cols-3 gap-8">
+                {/* Carte du Profil */}
+                <Card className="md:col-span-1 hover:shadow-lg transition-shadow">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-3">
                             <Building2 className="text-rose-500" />
-                            <span>Profil de l'Entreprise</span>
+                            <span>Votre Profil</span>
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <p className="text-gray-600">Mettez à jour les informations publiques de votre entreprise.</p>
-                        <div className="flex space-x-2">
+                    <CardContent className="space-y-3 text-sm">
+                        <p className="flex items-start gap-2"><Hash className="h-4 w-4 mt-1 text-gray-400" /> <strong>SIRET :</strong> {companyProfile.siret}</p>
+                        <p className="flex items-start gap-2"><Mail className="h-4 w-4 mt-1 text-gray-400" /> <strong>Email :</strong> {session.user.email}</p>
+                        {companyProfile.telephone && <p className="flex items-start gap-2"><Phone className="h-4 w-4 mt-1 text-gray-400" /> <strong>Téléphone :</strong> {companyProfile.telephone}</p>}
+                        {companyProfile.secteur_activite && <p className="flex items-start gap-2"><Building2 className="h-4 w-4 mt-1 text-gray-400" /> <strong>Secteur :</strong> {companyProfile.secteur_activite}</p>}
+                        {companyProfile.adresse && <p className="flex items-start gap-2"><MapPin className="h-4 w-4 mt-1 text-gray-400" /> <strong>Adresse :</strong> {companyProfile.adresse}</p>}
+
+                         <div className="flex flex-col space-y-2 pt-4">
                              <Button variant="outline"><Edit className="mr-2 h-4 w-4"/> Modifier le profil</Button>
-                             <Link href={`/company/${companyId}`} passHref>
-                                <Button variant="ghost" className="text-rose-600"><ExternalLink className="mr-2 h-4 w-4"/> Voir la page publique</Button>
+                             <Link href={`/company/${companyProfile.id}`} passHref>
+                                <Button variant="ghost" className="text-rose-600 w-full"><ExternalLink className="mr-2 h-4 w-4"/> Voir la page publique</Button>
                              </Link>
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* Carte de gestion des annonces */}
-                <Card className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                           <span>Gérer les Annonces</span>
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <p className="text-gray-600">Publiez et gérez vos annonces de recrutement, d'information ou de promotion.</p>
-                        <Button className="w-full"><PlusCircle className="mr-2 h-4 w-4"/> Créer une nouvelle annonce</Button>
-                    </CardContent>
-                </Card>
-
-                {/* Carte de gestion des stages */}
-                <Card className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3">
-                           <span>Gérer les Stages</span>
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <p className="text-gray-600">Proposez des offres de stage et consultez les candidatures reçues.</p>
-                        <Button className="w-full"><PlusCircle className="mr-2 h-4 w-4"/> Proposer un nouveau stage</Button>
-                    </CardContent>
-                </Card>
-                
-                 {/* Ajoutez d'autres cartes pour les événements, prestations, etc. */}
-
+                {/* Cartes d'actions */}
+                <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <Card className="hover:shadow-lg transition-shadow">
+                        <CardHeader><CardTitle>Gérer les Annonces</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                            <p className="text-gray-600">Publiez et gérez vos annonces.</p>
+                            <Button className="w-full"><PlusCircle className="mr-2 h-4 w-4"/> Gérer les annonces</Button>
+                        </CardContent>
+                    </Card>
+                    <Card className="hover:shadow-lg transition-shadow">
+                        <CardHeader><CardTitle>Gérer les Stages</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                            <p className="text-gray-600">Proposez des offres et consultez les candidatures.</p>
+                            <Button className="w-full"><PlusCircle className="mr-2 h-4 w-4"/> Gérer les stages</Button>
+                        </CardContent>
+                    </Card>
+                    {/* Ajoutez d'autres cartes ici */}
+                </div>
             </div>
         </div>
     );
