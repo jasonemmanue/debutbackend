@@ -1,3 +1,5 @@
+// components/AuthButtons.tsx
+
 "use client";
 
 import Link from "next/link";
@@ -35,14 +37,15 @@ export function AuthButtons() {
 
   if (status === "authenticated") {
     const user = session.user;
-    // Cette ligne ne sera plus soulignée en rouge grâce au fichier next-auth.d.ts
     const isCompany = user?.type === 'entreprise' || user?.type === 'employe';
+
+    // CORRECTION : Le chemin a été modifié ici
+    const dashboardUrl = isCompany ? "/company" : "/client/profile";
 
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            {/* Si l'utilisateur a une image, on l'affiche, sinon on affiche l'icône par défaut */}
             {user?.image ? (
               <Image
                 src={user.image}
@@ -70,7 +73,7 @@ export function AuthButtons() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-             <Link href={isCompany ? "/dashboard/company" : "/dashboard/client/profile"}>
+             <Link href={dashboardUrl}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>{isCompany ? "Dashboard Entreprise" : "Mon Profil"}</span>
              </Link>

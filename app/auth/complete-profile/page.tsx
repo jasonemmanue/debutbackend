@@ -1,4 +1,5 @@
 // /app/auth/complete-profile/page.tsx
+
 "use client";
 
 import React, { useState } from 'react';
@@ -24,7 +25,6 @@ export default function CompleteProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Données du formulaire pour l'entreprise
   const [raisonSociale, setRaisonSociale] = useState('');
   const [siret, setSiret] = useState('');
   const [secteur, setSecteur] = useState('');
@@ -35,7 +35,6 @@ export default function CompleteProfilePage() {
     setIsLoading(true);
     setError(null);
     
-    // Validation des champs
     if (!userType) {
         setError("Veuillez choisir un type de profil.");
         setIsLoading(false);
@@ -59,15 +58,14 @@ export default function CompleteProfilePage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Une erreur est survenue lors de la mise à jour du profil.');
+        throw new Error(errorData.message || 'Une erreur est survenue.');
       }
       
-      // Met à jour la session côté client pour refléter le nouveau rôle
       await update({ type: userType });
 
-      // Redirige l'utilisateur vers son dashboard approprié
+      // CORRECTION : La redirection est modifiée ici
       router.push(userType === 'entreprise' ? '/company' : '/client/profile');
-      router.refresh(); // Force un rafraîchissement pour charger la bonne page
+      router.refresh();
 
     } catch (err: any) {
       setError(err.message);
@@ -103,6 +101,7 @@ export default function CompleteProfilePage() {
                   <SelectItem value="entreprise">Entreprise</SelectItem>
                   <SelectItem value="particulier">Particulier</SelectItem>
                   <SelectItem value="stagiaire">Stagiaire</SelectItem>
+                  <SelectItem value="partenaire">Partenaire</SelectItem>
                 </SelectContent>
               </Select>
             </div>
