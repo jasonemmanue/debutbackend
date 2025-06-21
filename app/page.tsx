@@ -109,9 +109,7 @@ export default function HomePage() {
       {/* Hero Section avec arrière-plan d'images */}
       <section className="relative py-20 px-6 overflow-hidden min-h-[calc(100vh-81px)] flex items-center">
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-rose-900/60 via-purple-900/40 to-rose-900/60 z-0"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20 z-0"></div>
-
+          {/* Couche des images */}
           {backgroundImages.map((image, index) => (
             <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentBgSlide ? "opacity-100" : "opacity-0"}`}>
               <img
@@ -121,8 +119,13 @@ export default function HomePage() {
               />
             </div>
           ))}
+          {/* Couche des superpositions de couleur (overlays) */}
+          <div className="absolute inset-0 bg-gradient-to-r from-rose-900/60 via-purple-900/40 to-rose-900/60 z-10"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20 z-10"></div>
         </div>
-        <div className="relative z-10 container mx-auto text-center text-white">
+        
+        {/* Contenu textuel et boutons */}
+        <div className="relative z-20 container mx-auto text-center text-white">
           <Badge className="mb-6 bg-white/20 text-white border-white/30 backdrop-blur-sm animate-pulse">🌟 Plateforme de mise en relation B2B</Badge>
           <h1 className="text-5xl md:text-7xl font-light mb-6 leading-tight drop-shadow-2xl">
             RETROUVEZ LES ENTREPRISES<br />
@@ -141,7 +144,7 @@ export default function HomePage() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-2 border-white text-black hover:text-white hover:bg-white/10 text-lg px-8 py-6 hover:[text-shadow:0_1px_3px_rgb(0_0_0_/_0.5)] transform hover:scale-105 transition-all duration-300"
+                className="border-2 border-white text-white bg-transparent hover:bg-white/10 hover:text-white text-lg px-8 py-6 [text-shadow:0_1px_3px_rgb(0_0_0_/_0.5)] transform hover:scale-105 transition-all duration-300"
               >
                 Inscrire mon entreprise
               </Button>
@@ -158,8 +161,8 @@ export default function HomePage() {
           </div>
         </div>
         
-        {/* Indicateurs pour les images de fond */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+        {/* Indicateurs et contrôles de navigation */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-30">
           <div className="flex space-x-2">
             {backgroundImages.map((_, index) => (
               <button 
@@ -170,12 +173,10 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-        
-        {/* Boutons de navigation */}
-        <button className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm rounded-full p-3 hover:bg-white/30 transition-all duration-300" onClick={() => setCurrentBgSlide((prev) => (prev - 1 + backgroundImages.length) % backgroundImages.length)}>
+        <button className="absolute left-4 top-1/2 transform -translate-y-1/2 z-30 bg-white/20 backdrop-blur-sm rounded-full p-3 hover:bg-white/30 transition-all duration-300" onClick={() => setCurrentBgSlide((prev) => (prev - 1 + backgroundImages.length) % backgroundImages.length)}>
           <ChevronLeft className="h-6 w-6 text-white" />
         </button>
-        <button className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm rounded-full p-3 hover:bg-white/30 transition-all duration-300" onClick={() => setCurrentBgSlide((prev) => (prev + 1) % backgroundImages.length)}>
+        <button className="absolute right-4 top-1/2 transform -translate-y-1/2 z-30 bg-white/20 backdrop-blur-sm rounded-full p-3 hover:bg-white/30 transition-all duration-300" onClick={() => setCurrentBgSlide((prev) => (prev + 1) % backgroundImages.length)}>
           <ChevronRight className="h-6 w-6 text-white" />
         </button>
       </section>
@@ -294,7 +295,7 @@ export default function HomePage() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-2 border-white text-black hover:text-black hover:bg-transparent text-lg px-8 py-6"
+                className="border-2 border-white text-white bg-transparent hover:text-white hover:bg-white/10 text-lg px-8 py-6"
               >
                 En savoir plus
               </Button>
