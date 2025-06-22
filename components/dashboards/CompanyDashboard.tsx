@@ -21,7 +21,7 @@ import {
   ChevronRight,
   Building2
 } from "lucide-react";
-import Link from 'next/link'; // Correction ici : next/link au lieu de next.link
+import Link from 'next/link';
 import { DashboardHero } from "../DashboardHero";
 import type { Session } from "next-auth";
 
@@ -123,7 +123,7 @@ export function CompanyDashboard({ user }: CompanyDashboardProps) {
                   className="bg-white text-purple-600 hover:bg-purple-50 shadow-lg"
                   asChild
                 >
-                  <Link href={`/entreprise/${companyId}`}>
+                  <Link href={`/company/${companyId}`}>
                     <ExternalLink className="w-4 h-4 mr-2" />
                     Voir la page publique
                   </Link>
@@ -171,9 +171,6 @@ export function CompanyDashboard({ user }: CompanyDashboardProps) {
                   </Card>
                 ))}
               </div>
-              <p className="text-sm text-gray-600 mt-4 text-center">
-                Vues du profil, nouveaux suiveurs, et performance des annonces.
-              </p>
             </div>
 
             {/* Actions principales */}
@@ -195,15 +192,12 @@ export function CompanyDashboard({ user }: CompanyDashboardProps) {
                     <p className="text-gray-600 mb-4">
                       Créez ou modifiez vos annonces d'emploi.
                     </p>
-                    <Button 
-                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg"
-                      asChild
-                    >
-                      <Link href="/dashboard/entreprise/annonces">
+                    <Link href="/company/announcements" passHref>
+                      <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg">
                         Gérer mes annonces
                         <ChevronRight className="w-4 h-4 ml-2" />
-                      </Link>
-                    </Button>
+                      </Button>
+                    </Link>
                   </CardContent>
                 </Card>
 
@@ -219,15 +213,12 @@ export function CompanyDashboard({ user }: CompanyDashboardProps) {
                     <p className="text-gray-600 mb-4">
                       Publiez des offres et consultez les candidatures.
                     </p>
-                    <Button 
-                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg"
-                      asChild
-                    >
-                      <Link href="/dashboard/entreprise/stages">
+                    <Link href="/company/internships" passHref>
+                      <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg">
                         Gérer mes stages
                         <ChevronRight className="w-4 h-4 ml-2" />
-                      </Link>
-                    </Button>
+                      </Button>
+                    </Link>
                   </CardContent>
                 </Card>
               </div>
@@ -288,9 +279,6 @@ export function CompanyDashboard({ user }: CompanyDashboardProps) {
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-gray-600 mt-4 text-center">
-                    Nouvelles candidatures, commentaires et messages.
-                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -306,7 +294,7 @@ export function CompanyDashboard({ user }: CompanyDashboardProps) {
                   className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg h-12"
                   asChild
                 >
-                  <Link href="/dashboard/entreprise/annonces/nouvelle">
+                  <Link href="/company/announcements/new">
                     <PlusCircle className="w-4 h-4 mr-2" />
                     Publier une annonce
                   </Link>
@@ -317,7 +305,7 @@ export function CompanyDashboard({ user }: CompanyDashboardProps) {
                   className="w-full border-purple-200 hover:bg-purple-50 h-12"
                   asChild
                 >
-                  <Link href="/dashboard/entreprise/evenements/nouveau">
+                  <Link href="/company/events">
                     <Calendar className="w-4 h-4 mr-2" />
                     Créer un événement
                   </Link>
@@ -328,7 +316,7 @@ export function CompanyDashboard({ user }: CompanyDashboardProps) {
                   className="w-full border-blue-200 hover:bg-blue-50 h-12"
                   asChild
                 >
-                  <Link href="/dashboard/entreprise/messages">
+                  <Link href="/company/messages">
                     <MessageSquare className="w-4 h-4 mr-2" />
                     Voir les messages
                   </Link>
@@ -362,7 +350,6 @@ export function CompanyDashboard({ user }: CompanyDashboardProps) {
         </div>
       </div>
 
-      {/* Section Hero pour l'entreprise */}
       <DashboardHero 
         title="RETROUVEZ LES ENTREPRISES EXPERTES DANS LEURS DOMAINES"
         subtitle="Connectez-vous avec les meilleures entreprises de votre secteur et développez votre réseau professionnel avec excellence."

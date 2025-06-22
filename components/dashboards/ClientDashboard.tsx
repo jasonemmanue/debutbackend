@@ -174,10 +174,12 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 mb-4">Découvrez les dernières nouvelles des entreprises que vous suivez.</p>
-                  <Button variant="outline" className="w-full border-rose-200 text-rose-600 hover:bg-rose-50">
-                    Voir les actualités
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
+                  <Link href="/client/feed" passHref>
+                    <Button variant="outline" className="w-full border-rose-200 text-rose-600 hover:bg-rose-50">
+                      Voir les actualités
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
               
@@ -194,7 +196,7 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 mb-4">Accédez rapidement aux profils des entreprises qui vous intéressent.</p>
-                  <Link href="/dashboard/client/followed" passHref>
+                  <Link href="/client/followed-companies" passHref>
                     <Button className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600">
                       Voir mes entreprises
                       <ArrowRight className="h-4 w-4 ml-2" />
@@ -216,10 +218,12 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 mb-4">Suivez l'avancement de vos demandes de stage.</p>
-                  <Button variant="outline" className="w-full border-cyan-200 text-cyan-600 hover:bg-cyan-50">
-                    Gérer mes candidatures
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
+                  <Link href="/client/applications" passHref>
+                    <Button variant="outline" className="w-full border-cyan-200 text-cyan-600 hover:bg-cyan-50">
+                      Gérer mes candidatures
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
 
@@ -236,10 +240,12 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 mb-4">Consultez les événements auxquels vous êtes inscrit.</p>
-                  <Button variant="outline" className="w-full border-green-200 text-green-600 hover:bg-green-50">
-                    Voir mes événements
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
+                  <Link href="/client/events" passHref>
+                    <Button variant="outline" className="w-full border-green-200 text-green-600 hover:bg-green-50">
+                      Voir mes événements
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
               
@@ -256,10 +262,12 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 mb-4">Découvrez de nouvelles entreprises prometteuses.</p>
-                  <Button variant="outline" className="w-full border-yellow-200 text-yellow-600 hover:bg-yellow-50">
-                    Explorer les suggestions
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
+                  <Link href="/client/suggestions" passHref>
+                    <Button variant="outline" className="w-full border-yellow-200 text-yellow-600 hover:bg-yellow-50">
+                      Explorer les suggestions
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             </div>
