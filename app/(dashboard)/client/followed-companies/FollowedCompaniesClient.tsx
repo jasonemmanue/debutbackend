@@ -23,6 +23,7 @@ export function FollowedCompaniesClient({ initialCompanies }: FollowedCompaniesC
 
   const unfollowCompany = async (id: string) => {
     const originalCompanies = [...companies];
+    // Mise à jour optimiste de l'UI
     setCompanies(currentCompanies => currentCompanies.filter(c => c.id_entreprise !== id));
 
     try {
@@ -31,12 +32,13 @@ export function FollowedCompaniesClient({ initialCompanies }: FollowedCompaniesC
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 entrepriseId: id,
-                action: 'unfollow'
+                action: 'unfollow' // Action de ne plus suivre
             })
         });
     } catch (error) {
-        setCompanies(originalCompanies); // Revert on error
-        console.error("Failed to unfollow company", error);
+        // En cas d'erreur, on restaure la liste initiale
+        setCompanies(originalCompanies);
+        console.error("Impossible de ne plus suivre l'entreprise", error);
     }
   };
 
@@ -54,6 +56,7 @@ export function FollowedCompaniesClient({ initialCompanies }: FollowedCompaniesC
                                 <Badge variant="secondary" className="mt-1">{company.secteur_activite}</Badge>
                             </div>
                             <div className="flex items-center space-x-2">
+                                {/* Ce lien pointe vers la page de profil dynamique de l'entreprise */}
                                 <Link href={`/company/${company.id_entreprise}`} passHref>
                                      <Button variant="outline" size="sm">
                                         <ExternalLink className="h-4 w-4 mr-1" /> Voir l'entreprise

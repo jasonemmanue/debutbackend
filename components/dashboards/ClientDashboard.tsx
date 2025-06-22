@@ -1,19 +1,62 @@
+// components/dashboards/ClientDashboard.tsx
 "use client";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Rss, Star, Briefcase, Calendar, Building2, TrendingUp, Plus, ArrowRight, Eye, Users, Bell, MessageSquare, Settings, User } from "lucide-react";
 import Link from 'next/link';
 import { DashboardHero } from '../DashboardHero';
+import { SearchResults } from './SearchResults';
 import type { Session } from "next-auth";
 
-// Typage des props pour plus de clarté
 interface ClientDashboardProps {
   user: Session["user"];
 }
 
+interface CompanySearchResult {
+    id: string;
+    raison_sociale: string | null;
+    secteur_activite: string | null;
+    adresse: string | null;
+    isFollowing: boolean;
+}
+
 export function ClientDashboard({ user }: ClientDashboardProps) {
-  // Données simulées pour l'utilisateur
+  const [searchQuery, setSearchQuery] = useState('');
+  const [results, setResults] = useState<CompanySearchResult[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const searchCompanies = useCallback(async (query: string) => {
+    if (query.trim() === '') {
+      setResults([]);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/search/companies?query=${encodeURIComponent(query)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setResults(data);
+      }
+    } catch (error) {
+      console.error("Erreur de recherche:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setResults([]);
+      return;
+    }
+    const debounceTimer = setTimeout(() => {
+      searchCompanies(searchQuery);
+    }, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery, searchCompanies]);
+  
   const userProfile = {
     name: user?.name || "Client",
     type: "Particulier",
@@ -22,53 +65,20 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
     joinDate: "Janvier 2024"
   };
 
-  // Statistiques utilisateur
   const userStats = [
-    {
-      title: "Entreprises suivies",
-      value: "8",
-      icon: Building2,
-      color: "from-blue-500 to-cyan-500"
-    },
-    {
-      title: "Candidatures",
-      value: "3",
-      icon: Briefcase,
-      color: "from-purple-500 to-pink-500"
-    },
-    {
-      title: "Événements",
-      value: "5",
-      icon: Calendar,
-      color: "from-green-500 to-teal-500"
-    }
+    { title: "Entreprises suivies", value: "8", icon: Building2, color: "from-blue-500 to-cyan-500" },
+    { title: "Candidatures", value: "3", icon: Briefcase, color: "from-purple-500 to-pink-500" },
+    { title: "Événements", value: "5", icon: Calendar, color: "from-green-500 to-teal-500" }
   ];
 
-  // Activités récentes
   const recentActivities = [
-    {
-      id: 1,
-      title: "TechCorp Solutions a publié une nouvelle offre",
-      time: "Il y a 2h",
-      type: "offer"
-    },
-    {
-      id: 2,
-      title: "Nouveau message de GreenEnergy France",
-      time: "Il y a 4h",
-      type: "message"
-    },
-    {
-      id: 3,
-      title: "Forum des Métiers Tech - Rappel d'événement",
-      time: "Il y a 1 jour",
-      type: "event"
-    }
+    { id: 1, title: "TechCorp Solutions a publié une nouvelle offre", time: "Il y a 2h", type: "offer" },
+    { id: 2, title: "Nouveau message de GreenEnergy France", time: "Il y a 4h", type: "message" },
+    { id: 3, title: "Forum des Métiers Tech - Rappel d'événement", time: "Il y a 1 jour", type: "event" }
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-purple-50">
-      {/* Header moderne */}
       <header className="bg-white/80 backdrop-blur-md border-b border-rose-200/50 sticky top-0 z-50">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
@@ -82,50 +92,52 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm">
-                <Bell className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm">
-                <MessageSquare className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm">
-                <Settings className="h-4 w-4" />
-              </Button>
+              <Button variant="ghost" size="sm"><Bell className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="sm"><MessageSquare className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="sm"><Settings className="h-4 w-4" /></Button>
             </div>
           </div>
         </div>
       </header>
 
+      <DashboardHero 
+        title={<>Trouvez Votre<br/><span className="font-normal text-rose-200">Prochain Partenaire</span></>}
+        subtitle="Utilisez notre moteur de recherche pour découvrir les meilleures entreprises de votre secteur."
+        showSearchBar={true}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      />
+      
       <div className="container mx-auto px-6 py-8">
+        
+        <div className="max-w-2xl mx-auto mb-8">
+          {(searchQuery.length > 0 || isLoading) && (
+            <SearchResults 
+              results={results} 
+              isLoading={isLoading}
+              setResults={setResults} 
+            />
+          )}
+        </div>
+
         <div className="grid grid-cols-12 gap-8">
-          {/* Sidebar avec profil utilisateur */}
           <div className="col-span-3">
             <Card className="border-rose-100 shadow-lg">
               <CardContent className="p-6">
                 <div className="text-center mb-6">
-                  <img
-                    src={userProfile.avatar}
-                    alt={userProfile.name}
-                    className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-rose-100"
-                  />
+                  <img src={userProfile.avatar} alt={userProfile.name} className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-rose-100" />
                   <h3 className="font-semibold text-gray-800">{userProfile.name}</h3>
-                  <Badge className="mt-2 bg-blue-100 text-blue-700">
-                    {userProfile.type}
-                  </Badge>
+                  <Badge className="mt-2 bg-blue-100 text-blue-700">{userProfile.type}</Badge>
                   <div className="mt-3">
                     <h4 className="text-sm font-medium text-gray-500">Centres d'intérêt</h4>
                     <div className="flex flex-wrap justify-center gap-2 mt-2">
                       {userProfile.interests.map((interest, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {interest}
-                        </Badge>
+                        <Badge key={index} variant="outline" className="text-xs">{interest}</Badge>
                       ))}
                     </div>
                   </div>
                   <p className="text-sm text-gray-400 mt-3">Membre depuis {userProfile.joinDate}</p>
                 </div>
-
-                {/* Statistiques rapides */}
                 <div className="space-y-3">
                   {userStats.map((stat, index) => (
                     <div key={index} className="flex items-center p-3 bg-gradient-to-r from-gray-50 to-white rounded-lg">
@@ -143,9 +155,7 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
             </Card>
           </div>
 
-          {/* Contenu principal */}
           <div className="col-span-9">
-            {/* Message de bienvenue moderne */}
             <div className="bg-gradient-to-r from-rose-500 to-purple-600 rounded-2xl p-8 text-white mb-8">
               <h2 className="text-3xl font-light mb-2">
                 Bienvenue, <span className="font-semibold">{userProfile.name}</span> ! 👋
@@ -159,7 +169,7 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
               </Button>
             </div>
 
-            {/* Grille de cartes principales */}
+            {/* Grille de cartes principales (avec tous les boutons) */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               <Card className="hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-rose-100">
                 <CardHeader className="pb-3">
@@ -227,6 +237,7 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
                 </CardContent>
               </Card>
 
+              {/* BOUTON "MES ÉVÈNEMENTS" RÉINTÉGRÉ */}
               <Card className="hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-green-100">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3">
@@ -249,6 +260,7 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
                 </CardContent>
               </Card>
               
+              {/* BOUTON "SUGGESTIONS" RÉINTÉGRÉ */}
               <Card className="hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-yellow-100">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3">
@@ -272,7 +284,6 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
               </Card>
             </div>
 
-            {/* Section Activités récentes */}
             <Card className="border-rose-100 shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -282,26 +293,19 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
                     </div>
                     <span>Activités récentes</span>
                   </div>
-                  <Button variant="ghost" size="sm" className="text-rose-600">
-                    Voir tout
-                    <ArrowRight className="h-4 w-4 ml-1" />
-                  </Button>
+                  <Button variant="ghost" size="sm" className="text-rose-600">Voir tout<ArrowRight className="h-4 w-4 ml-1" /></Button>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {recentActivities.map((activity) => (
                     <div key={activity.id} className="flex items-start p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-100">
-                      <div className="p-2 bg-blue-50 rounded-lg mr-4">
-                        <Eye className="h-4 w-4 text-blue-500" />
-                      </div>
+                      <div className="p-2 bg-blue-50 rounded-lg mr-4"><Eye className="h-4 w-4 text-blue-500" /></div>
                       <div className="flex-1">
                         <p className="font-medium text-gray-800">{activity.title}</p>
                         <p className="text-sm text-gray-500">{activity.time}</p>
                       </div>
-                      <Button variant="ghost" size="sm" className="text-blue-600">
-                        Voir
-                      </Button>
+                      <Button variant="ghost" size="sm" className="text-blue-600">Voir</Button>
                     </div>
                   ))}
                 </div>
@@ -310,13 +314,6 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
           </div>
         </div>
       </div>
-      
-      {/* Section Hero pour le client */}
-      <DashboardHero 
-        title={<>Trouvez Votre<br/><span className="font-normal text-rose-200">Prochain Partenaire</span></>}
-        subtitle="Utilisez notre moteur de recherche pour découvrir les meilleures entreprises de votre secteur."
-        showSearchBar={true}
-      />
     </div>
   );
 }

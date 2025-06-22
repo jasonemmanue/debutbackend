@@ -1,3 +1,4 @@
+// components/DashboardHero.tsx
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -29,7 +30,8 @@ export function DashboardHero({ title, subtitle, showSearchBar = false, searchQu
   }, [backgroundImages.length]);
 
   return (
-    <section className="relative py-20 px-6 overflow-hidden mt-16">
+    // MODIFICATION ICI: py-20 a été remplacé par py-12 pour réduire la hauteur
+    <section className="relative py-12 px-6 overflow-hidden mt-8">
       <div className="absolute inset-0">
         {backgroundImages.map((image, index) => (
           <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentBgSlide ? "opacity-100" : "opacity-0"}`}>
@@ -39,10 +41,10 @@ export function DashboardHero({ title, subtitle, showSearchBar = false, searchQu
         <div className="absolute inset-0 bg-gradient-to-r from-rose-900/70 via-purple-900/50 to-rose-900/70 z-10"></div>
       </div>
       <div className="relative z-20 container mx-auto text-center text-white">
-        <h2 className="text-5xl md:text-7xl font-light mb-6 leading-tight drop-shadow-2xl">
+        <h2 className="text-4xl md:text-5xl font-light mb-4 leading-tight drop-shadow-2xl">
           {title}
         </h2>
-        <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto font-light drop-shadow-lg">
+        <p className="text-lg text-white/90 mb-6 max-w-2xl mx-auto font-light drop-shadow-lg">
           {subtitle}
         </p>
         {showSearchBar && setSearchQuery && (

@@ -1,3 +1,5 @@
+// next.config.mjs
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -14,13 +16,20 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
-     
       {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
         port: '',
         pathname: '/**',
       },
+      // === AJOUTEZ CE BLOC POUR AUTORISER UNSPLASH ===
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
+      // ===============================================
     ],
   },
 };
