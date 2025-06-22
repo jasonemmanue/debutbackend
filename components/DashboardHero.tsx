@@ -8,9 +8,11 @@ interface DashboardHeroProps {
   title: React.ReactNode;
   subtitle: string;
   showSearchBar?: boolean;
+  searchQuery?: string;
+  setSearchQuery?: (query: string) => void;
 }
 
-export function DashboardHero({ title, subtitle, showSearchBar = false }: DashboardHeroProps) {
+export function DashboardHero({ title, subtitle, showSearchBar = false, searchQuery, setSearchQuery }: DashboardHeroProps) {
   const [currentBgSlide, setCurrentBgSlide] = useState(0);
 
   const backgroundImages = [
@@ -43,12 +45,18 @@ export function DashboardHero({ title, subtitle, showSearchBar = false }: Dashbo
         <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto font-light drop-shadow-lg">
           {subtitle}
         </p>
-        {showSearchBar && (
+        {showSearchBar && setSearchQuery && (
            <div className="max-w-2xl mx-auto">
              <div className="relative bg-white/95 backdrop-blur-md rounded-2xl p-2 shadow-2xl">
                <div className="flex items-center">
                  <Search className="ml-4 h-5 w-5 text-gray-400" />
-                 <input type="text" placeholder="Rechercher une entreprise, un service..." className="flex-1 ml-3 bg-transparent text-gray-700 placeholder-gray-500 focus:outline-none py-3" />
+                 <input 
+                   type="text" 
+                   placeholder="Rechercher une entreprise..." 
+                   className="flex-1 ml-3 bg-transparent text-gray-700 placeholder-gray-500 focus:outline-none py-3"
+                   value={searchQuery}
+                   onChange={(e) => setSearchQuery(e.target.value)}
+                 />
                  <Button className="bg-gradient-to-r from-rose-500 to-purple-500 text-white px-6 hover:from-rose-600 hover:to-purple-600">Rechercher</Button>
                </div>
              </div>

@@ -21,6 +21,7 @@ CREATE TABLE "User" (
     "mot_de_passe" TEXT,
     "date_inscription" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "type" "TypeAbonne",
+    
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );

@@ -46,6 +46,7 @@ model User {
   commentaires      Commentaire[]
   participations    ParticipationEvenement[]
   reactions         ReactionAnnonce[]
+  followedCompanies Follow[]
 }
 
 model Account {
@@ -100,8 +101,19 @@ model Entreprise {
   prestations       Prestation[]
   stages            Stage[]
   employes          Employe[]
+  followedBy Follow[]
 }
+model Follow {
+  userId       String
+  entrepriseId String
+  createdAt    DateTime @default(now())
 
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entreprise Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  @@id([userId, entrepriseId])
+  @@map("followed_companies") // Nom de la table en base de données
+}
 model Employe {
   id              String    @id @default(cuid())
   poste           String?
