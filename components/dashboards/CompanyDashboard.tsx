@@ -19,7 +19,8 @@ import {
   MessageSquare,
   Activity,
   ChevronRight,
-  Building2
+  Building2,
+  Handshake // Ajout de l'icône pour les prestations
 } from "lucide-react";
 import Link from 'next/link';
 import { DashboardHero } from "../DashboardHero";
@@ -30,7 +31,8 @@ interface CompanyDashboardProps {
 }
 
 export function CompanyDashboard({ user }: CompanyDashboardProps) {
-  const companyId = "exemple-id"; // TODO: À remplacer par le vrai ID de l'entreprise
+  // TODO: Remplacer cet ID par une récupération dynamique de l'ID de l'entreprise liée à l'utilisateur
+  const companyId = "exemple-id"; 
   
   // Statistiques simulées
   const stats = [
@@ -181,19 +183,19 @@ export function CompanyDashboard({ user }: CompanyDashboardProps) {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Gérer les Annonces */}
-                <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-blue-50 to-indigo-100 hover:scale-105">
+                <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-orange-50 to-amber-100 hover:scale-105">
                   <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center text-blue-700">
+                    <CardTitle className="flex items-center text-orange-700">
                       <FileText className="w-5 h-5 mr-2" />
                       Gérer les Annonces
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-gray-600 mb-4">
-                      Créez ou modifiez vos annonces d'emploi.
+                      Créez ou modifiez vos annonces et actualités.
                     </p>
                     <Link href="/company/announcements" passHref>
-                      <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg">
+                      <Button className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 shadow-lg">
                         Gérer mes annonces
                         <ChevronRight className="w-4 h-4 ml-2" />
                       </Button>
@@ -205,7 +207,7 @@ export function CompanyDashboard({ user }: CompanyDashboardProps) {
                 <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-green-50 to-emerald-100 hover:scale-105">
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center text-green-700">
-                      <Briefcase className="w-5 h-5 mr-2" />
+                      <Users className="w-5 h-5 mr-2" />
                       Gérer les Stages
                     </CardTitle>
                   </CardHeader>
@@ -216,6 +218,27 @@ export function CompanyDashboard({ user }: CompanyDashboardProps) {
                     <Link href="/company/internships" passHref>
                       <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg">
                         Gérer mes stages
+                        <ChevronRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+                
+                {/* [AJOUTÉ] Gérer les Prestations */}
+                <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-blue-50 to-cyan-100 hover:scale-105">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center text-blue-700">
+                      <Handshake className="w-5 h-5 mr-2" />
+                      Gérer les Prestations
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 mb-4">
+                      Proposez vos services et votre savoir-faire.
+                    </p>
+                    <Link href="/company/prestations/new" passHref>
+                      <Button className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-lg">
+                        Créer une prestation
                         <ChevronRight className="w-4 h-4 ml-2" />
                       </Button>
                     </Link>
