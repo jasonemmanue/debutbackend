@@ -2,26 +2,27 @@
 "use client"
 
 import React, { useState } from 'react';
-// ... (gardez tous les autres imports)
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FileText, Edit, Trash2, Calendar, Clock, Check, X } from "lucide-react";
+import { Plus, Trash2, Heart, MessageSquare, ThumbsUp } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
-
+// Types pour les données reçues du serveur
+type UserInfo = { name: string | null; email: string | null; };
+type Comment = { id: string; contenu: string; date_creation: Date; abonne: UserInfo; };
 type Announcement = {
   id: string;
   titre: string;
   contenu: string | null;
   date_publication: Date | null;
-  createurId: string;
-  type_annonce: string;
-  date_expiration: Date | null;
-  status: 'active' | 'archived' | 'draft';
+  commentaires: Comment[];
+  _count: { reactions: number };
 };
 
 interface ManageAnnouncementsClientProps {
@@ -29,98 +30,112 @@ interface ManageAnnouncementsClientProps {
 }
 
 export default function ManageAnnouncementsClient({ initialAnnouncements }: ManageAnnouncementsClientProps) {
-  const [activeTab, setActiveTab] = useState("list")
-  const [announcements, setAnnouncements] = useState(initialAnnouncements)
-  const [currentAnnouncement, setCurrentAnnouncement] = useState<Partial<Announcement> | null>(null)
+  const [announcements, setAnnouncements] = useState(initialAnnouncements);
+  const [newAnnouncement, setNewAnnouncement] = useState({ titre: '', contenu: '' });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const announcementTypes = [
-    { value: "emploi", label: "Offre d'emploi" },
-    { value: "stage", label: "Stage" },
-    { value: "alternance", label: "Alternance" },
-    { value: "evenement", label: "Événement" },
-    { value: "information", label: "Information" }
-  ]
+  const handleCreateAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/company/announcements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newAnnouncement),
+      });
+      if (!response.ok) throw new Error("Erreur lors de la création de l'annonce");
+      
+      const created = await response.json();
+      // Ajout des champs manquants pour l'affichage immédiat
+      setAnnouncements(prev => [{ ...created, commentaires: [], _count: { reactions: 0 } }, ...prev]);
+      setNewAnnouncement({ titre: '', contenu: '' });
 
-  const handleCreateNew = () => {
-    setCurrentAnnouncement({ titre: "", contenu: "", type_annonce: "emploi", date_expiration: null, status: "draft" })
-    setActiveTab("edit")
-  }
-
-  const handleEdit = (announcement: Announcement) => {
-    setCurrentAnnouncement({...announcement})
-    setActiveTab("edit")
-  }
-
-  const handleSave = () => { console.log("Sauvegarde:", currentAnnouncement); setActiveTab("list"); };
-  const handleDelete = (id: string) => { console.log("Suppression:", id); };
+    } catch (error) {
+      console.error(error);
+      alert("Une erreur est survenue.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
-  const formatDate = (date: Date | null) => date ? new Date(date).toLocaleDateString('fr-FR') : 'N/A';
-  
-  // CORRECTION: Cette fonction gère la conversion de Date|null vers une string pour l'input
-  const formatInputDate = (date: Date | null | undefined) => {
-    if (!date) return '';
-    // Assurer que l'objet est bien une Date
-    const d = new Date(date);
-    // Gérer les dates invalides
-    if (isNaN(d.getTime())) return '';
-    return d.toISOString().slice(0, 16);
-  }
+  const handleDeleteComment = async (commentId: string, annonceId: string) => {
+     // Mise à jour optimiste de l'UI
+     setAnnouncements(prev => prev.map(ann => 
+        ann.id === annonceId 
+        ? { ...ann, commentaires: ann.commentaires.filter(c => c.id !== commentId) } 
+        : ann
+     ));
 
+     try {
+       await fetch(`/api/comments/${commentId}`, { method: 'DELETE' });
+     } catch (error) {
+       console.error("Erreur suppression commentaire:", error);
+       // Rollback en cas d'erreur (non implémenté pour la simplicité, mais serait ici)
+       alert("Impossible de supprimer le commentaire.");
+     }
+  };
+  
   return (
     <div className="space-y-8">
-        {activeTab === "list" && (
-            <>
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">Gérer les annonces</h2>
-                  <Button onClick={handleCreateNew}><Plus className="h-4 w-4 mr-2" />Nouvelle annonce</Button>
-                </div>
-                <Card><CardContent className="p-6 space-y-4">
-                  {announcements.map((announcement) => (
-                    <Card key={announcement.id}><CardContent className="p-6">
-                       <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-bold text-lg">{announcement.titre}</h3>
-                            <p className="mt-3 text-gray-700 line-clamp-2">{announcement.contenu}</p>
-                          </div>
-                          <div className="flex flex-col space-y-2">
-                            <Button variant="ghost" size="sm" onClick={() => handleEdit(announcement)}><Edit className="h-4 w-4 mr-1" />Modifier</Button>
-                            <Button variant="ghost" size="sm" className="text-red-500" onClick={() => handleDelete(announcement.id)}><Trash2 className="h-4 w-4 mr-1" />Supprimer</Button>
-                          </div>
-                        </div>
-                    </CardContent></Card>
-                  ))}
-                </CardContent></Card>
-            </>
-        )}
-
-        {activeTab === "edit" && currentAnnouncement && (
-            <>
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">{'id' in currentAnnouncement ? "Modifier" : "Créer"} une annonce</h2>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" onClick={() => { setActiveTab("list"); setCurrentAnnouncement(null); }}>Annuler</Button>
-                    <Button onClick={handleSave}>Enregistrer</Button>
+      <Card>
+        <CardHeader><CardTitle>Publier une nouvelle annonce</CardTitle></CardHeader>
+        <CardContent>
+          <form onSubmit={handleCreateAnnouncement} className="space-y-4">
+            <div>
+              <Label htmlFor="titre">Titre</Label>
+              <Input id="titre" value={newAnnouncement.titre} onChange={e => setNewAnnouncement({...newAnnouncement, titre: e.target.value})} required/>
+            </div>
+            <div>
+              <Label htmlFor="contenu">Contenu</Label>
+              <Textarea id="contenu" value={newAnnouncement.contenu} onChange={e => setNewAnnouncement({...newAnnouncement, contenu: e.target.value})} required/>
+            </div>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? <Loader2 className="animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+              Publier
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+      
+      <div>
+        <h2 className="text-2xl font-bold mb-4">Mes Annonces Publiées</h2>
+        <div className="space-y-6">
+          {announcements.map(ann => (
+            <Card key={ann.id}>
+              <CardHeader>
+                  <CardTitle>{ann.titre}</CardTitle>
+                  <p className="text-sm text-gray-500">
+                    Publié le {ann.date_publication ? format(new Date(ann.date_publication), 'd MMMM yyyy', { locale: fr }) : ''}
+                  </p>
+              </CardHeader>
+              <CardContent>
+                  <p className="whitespace-pre-wrap">{ann.contenu}</p>
+                  <div className="flex items-center gap-4 mt-4 text-gray-600">
+                      <div className="flex items-center gap-1"><Heart className="h-4 w-4" /> {ann._count.reactions}</div>
+                      <div className="flex items-center gap-1"><MessageSquare className="h-4 w-4" /> {ann.commentaires.length}</div>
                   </div>
-                </div>
-                <Card><CardContent className="p-6 space-y-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="title">Titre *</Label>
-                      <Input id="title" value={currentAnnouncement.titre} onChange={(e) => setCurrentAnnouncement({ ...currentAnnouncement, titre: e.target.value })}/>
-                    </div>
-                     <div className="space-y-2">
-                      <Label htmlFor="content">Contenu *</Label>
-                      <Textarea id="content" value={currentAnnouncement.contenu || ''} onChange={(e) => setCurrentAnnouncement({ ...currentAnnouncement, contenu: e.target.value })} rows={6} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="expiration">Date d'expiration</Label>
-                      <Input id="expiration" type="datetime-local" 
-                             value={formatInputDate(currentAnnouncement.date_expiration)} 
-                             onChange={(e) => setCurrentAnnouncement({ ...currentAnnouncement, date_expiration: e.target.value ? new Date(e.target.value) : null })}
-                      />
-                    </div>
-                </CardContent></Card>
-            </>
-        )}
+              </CardContent>
+              <div className="p-6 pt-0">
+                  <h4 className="font-semibold text-sm mb-2">Commentaires</h4>
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    {ann.commentaires.length > 0 ? ann.commentaires.map(comment => (
+                       <div key={comment.id} className="bg-gray-50 p-3 rounded-lg flex justify-between items-start">
+                           <div>
+                               <p className="text-xs text-gray-500">{comment.abonne.email}</p>
+                               <p className="text-sm">{comment.contenu}</p>
+                               <p className="text-xs text-gray-400 mt-1">{format(new Date(comment.date_creation), 'Pp', { locale: fr })}</p>
+                           </div>
+                           <Button variant="ghost" size="sm" className="text-red-500" onClick={() => handleDeleteComment(comment.id, ann.id)}>
+                             <Trash2 className="h-4 w-4"/>
+                           </Button>
+                       </div>
+                    )) : <p className="text-sm text-gray-400">Aucun commentaire.</p>}
+                  </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
     </div>
-  )
+  );
 }
