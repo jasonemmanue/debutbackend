@@ -1,8 +1,9 @@
-// app/(dashboard)/company/internships/page.tsx
+// /app/(dashboard)/company/internships/page.tsx
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import ManageInternshipsClient from "./ManageInternshipsClient"; 
+import { notFound } from "next/navigation";
 
 export default async function ManageInternshipsPage() {
   const session = await auth();
@@ -19,14 +20,13 @@ export default async function ManageInternshipsPage() {
     redirect('/auth/complete-profile');
   }
   
-  // CORRECTION 1 : Utilisation de 'demandes' (le nom de la relation) pour le comptage
   const internshipOffers = await prisma.stage.findMany({
     where: {
       entrepriseId: companyProfile.id,
     },
     include: {
       _count: {
-        select: { demandes: true }, // CORRIGÉ
+        select: { demandes: true },
       },
     },
     orderBy: {
@@ -34,48 +34,35 @@ export default async function ManageInternshipsPage() {
     },
   });
 
+  // [MODIFIÉ] La requête inclut maintenant les détails du profil du stagiaire
   const applications = await prisma.demandeStage.findMany({
     where: {
       stage: { entrepriseId: companyProfile.id },
     },
     include: {
         stagiaire: {
-            include: { user: true }
+            // On sélectionne les champs spécifiques du profil stagiaire
+            select: {
+                niveau_etudes: true,
+                domaine_etudes: true,
+                competences: true,
+                user: { // On garde le nom et l'email de l'utilisateur
+                    select: {
+                        name: true,
+                        email: true,
+                    }
+                }
+            }
         }
     }
   });
-  
-  // CORRECTION 2 : Utilisation de `offer._count.demandes` et ajout de valeurs par défaut pour les champs manquants
-  const formattedOffers = internshipOffers.map(offer => ({
-      ...offer,
-      date_debut_prevue: offer.date_debut,
-      description_stage: offer.description,
-      titre_stage: offer.titre,
-      candidatures: offer._count.demandes, // CORRIGÉ
-
-      // --- Champs manquants dans votre modèle 'Stage' ---
-      // Pour que le code fonctionne, j'ajoute des valeurs par défaut.
-      // Pour une solution permanente, vous devriez ajouter ces colonnes à votre table `Stage` dans le fichier `schema.prisma` et lancer `npx prisma migrate dev`.
-      duree_stage: "6 mois",
-      remunere: true,
-      statut: 'active',
-      niveau_etude_requis: "Bac+3", // CORRIGÉ : Ajout d'une valeur par défaut
-  }));
-  
-  const formattedApplications = applications.map(app => ({
-      id: app.id,
-      id_stage: app.stageId,
-      candidat: app.stagiaire?.user?.name || 'Candidat Anonyme',
-      date: app.date_demande.toISOString(),
-      status: app.statut,
-      message: "Message à ajouter au modèle si besoin",
-      cv: "CV à ajouter au modèle si besoin"
-  }));
 
   return (
-    <ManageInternshipsClient 
-        initialOffers={formattedOffers} 
-        initialApplications={formattedApplications} 
-    />
+    <div className="container mx-auto py-8">
+      <ManageInternshipsClient 
+          initialOffers={internshipOffers} 
+          initialApplications={applications} 
+      />
+    </div>
   );
 }

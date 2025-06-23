@@ -189,17 +189,21 @@ model Prestation {
 }
 
 model Stage {
-  id                     String    @id @default(cuid())
-  titre                  String
-  description            String?   @db.Text
-  date_debut             DateTime?
-  date_fin               DateTime?
-  competences_requises   String?   @db.Text
-  
-  entreprise             Entreprise @relation(fields: [entrepriseId], references: [id])
-  entrepriseId           String
-  
-  demandes               DemandeStage[]
+  id                    String   @id @default(cuid())
+  titre                 String
+  description           String?
+  date_debut            DateTime?
+  date_fin              DateTime?
+  // [MODIFIÉ] Ajout des champs manquants
+  duree_stage           String?   // ex: "6 mois"
+  competences_requises  String?
+  niveau_etude_requis   String?   // ex: "Bac+5"
+  remunere              Boolean   @default(false)
+
+  entrepriseId          String
+  entreprise            Entreprise @relation(fields: [entrepriseId], references: [id])
+
+  demandes DemandeStage[] // Relation vers les demandes
 }
 
 model Annonce {
@@ -228,15 +232,18 @@ model Commentaire {
 }
 
 model DemandeStage {
-  id            String          @id @default(cuid())
-  date_demande  DateTime        @default(now())
-  statut        StatutDemande   @default(en_attente)
-  
-  stage         Stage           @relation(fields: [stageId], references: [id])
-  stageId       String
-  
-  stagiaire     Stagiaire       @relation(fields: [stagiaireId], references: [id])
-  stagiaireId   String
+  id                String       @id @default(cuid())
+  date_demande      DateTime     @default(now())
+  statut            StatutDemande @default(en_attente)
+  lettre_motivation String?
+  cv_path           String?
+
+  stageId           String
+  stagiaireId       String
+  stage             Stage        @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  stagiaire         Stagiaire    @relation(fields: [stagiaireId], references: [id], onDelete: Cascade)
+
+  @@unique([stageId, stagiaireId]) // Garantit qu'un stagiaire ne peut postuler qu'une seule fois à un même stage
 }
 
 model ParticipationEvenement {

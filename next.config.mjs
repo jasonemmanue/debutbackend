@@ -1,4 +1,4 @@
-// next.config.mjs
+// /next.config.mjs
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -22,14 +22,19 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
-      // === AJOUTEZ CE BLOC POUR AUTORISER UNSPLASH ===
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
         port: '',
         pathname: '/**',
       },
-      // ===============================================
+      // [AJOUTÉ] Autorisation pour le nouveau service d'avatars
+      {
+        protocol: 'https',
+        hostname: 'ui-avatars.com',
+        port: '',
+        pathname: '/api/**',
+      },
     ],
   },
 };
