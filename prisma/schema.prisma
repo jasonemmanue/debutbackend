@@ -1,12 +1,9 @@
 // =================================================================
-// Schema Prisma Final pour l'Annuaire d'Entreprises
-// Intègre la structure de l'utilisateur de Auth.js avec vos tables métier.
+// Schema Prisma Final et Corrigé
 // =================================================================
 
 generator client {
   provider = "prisma-client-js"
-  // On ajoute cette ligne pour forcer l'emplacement de sortie
-  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -15,55 +12,56 @@ datasource db {
 }
 
 // =================================================================
-// MODÈLES REQUIS PAR AUTH.JS (FUSIONNÉS AVEC VOTRE TABLE ABONNE)
+// MODÈLE USER MIS À JOUR AVEC TOUTES LES RELATIONS INVERSES
 // =================================================================
 
 model User {
   id            String    @id @default(cuid())
-  name          String? // Fourni par Google (nom complet)
+  name          String?
   email         String?   @unique
   emailVerified DateTime?
-  image         String? // Fourni par Google (URL de l'avatar)
-  
-  // --- VOS CHAMPS DE LA TABLE "ABONNE" ---
-  prenom            String?
-  mot_de_passe      String?
-  date_inscription  DateTime  @default(now())
-  type              TypeAbonne?
-  
-  // --- RELATIONS ---
+  mot_de_passe  String?
+  image         String?
+  type          TypeAbonne?
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // --- Relations Auth.js ---
   accounts      Account[]
   sessions      Session[]
-  
-  // Relations avec vos autres tables
-  entreprise        Entreprise?
-  employe           Employe?
-  particulier       Particulier?
-  stagiaire         Stagiaire?
-  partenaire        Partenaire?
-  evenementsCrees   Evenement[]   @relation("CreateurEvenement")
-  annoncesCrees     Annonce[]     @relation("CreateurAnnonce")
-  commentaires      Commentaire[]
-  participations    ParticipationEvenement[]
-  reactions         ReactionAnnonce[]
-  followedCompanies Follow[]
+
+  // --- Relations vers les profils (1-à-1) ---
+  entreprise    Entreprise?
+  employe       Employe? // Champ de retour pour le modèle Employe
+  particulier   Particulier? // Champ de retour pour le modèle Particulier
+  stagiaire     Stagiaire? // Champ de retour pour le modèle Stagiaire
+  partenaire    Partenaire? // Champ de retour pour le modèle Partenaire
+
+  // --- Relations vers les activités (1-à-N) ---
+  annonces_crees   Annonce[] // Champ de retour pour Annonce.createur
+  commentaires     Commentaire[]     @relation("auteur_commentaire")
+  reactions        ReactionAnnonce[] @relation("auteur_reaction")
+  followed         Follow[]
+  createdEvents    Evenement[]       @relation("CreateurEvenement")
+  participations   ParticipationEvenement[] // Champ de retour pour ParticipationEvenement.abonne
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String? @db.Text
-  access_token       String? @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String? @db.Text
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([provider, providerAccountId])
 }
 
@@ -79,30 +77,41 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
+
   @@unique([identifier, token])
 }
 
-
 // =================================================================
-// VOS TABLES MÉTIER (ADAPTÉES POUR PRISMA)
+// VOS TABLES MÉTIER
 // =================================================================
 
 model Entreprise {
-  id                String    @id @default(cuid())
-  raison_sociale    String?
-  siret             String?   @unique
-  secteur_activite  String?
-  adresse           String?   @db.Text
-  telephone         String?
-  
-  user              User      @relation(fields: [userId], references: [id])
-  userId            String    @unique // Relation 1-à-1 avec User
-  
-  prestations       Prestation[]
-  stages            Stage[]
-  employes          Employe[]
-  followedBy Follow[]
+  id                 String    @id @default(cuid())
+  secteur_activite   String?
+  adresse            String?
+  site_web           String?
+  description        String?
+  logo               String?
+  raison_sociale     String?
+  date_de_creation   DateTime?
+  certifications     String[]  @default([])
+  services_proposes  String[]  @default([])
+  nombre_employes    Int?
+  horaires_ouverture String?
+  pays               String?
+  ville              String?
+  sites              String[]  @default([])
+  contacts           String[]  @default([])
+  images             String[]  @default([])
+
+  user         User         @relation(fields: [userId], references: [id])
+  userId       String       @unique
+  prestations  Prestation[]
+  stages       Stage[]
+  employes     Employe[]
+  followedBy   Follow[]
 }
+
 model Follow {
   userId       String
   entrepriseId String
@@ -112,173 +121,169 @@ model Follow {
   entreprise Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
 
   @@id([userId, entrepriseId])
-  @@map("followed_companies") // Nom de la table en base de données
+  @@map("followed_companies")
 }
+
 model Employe {
-  id              String    @id @default(cuid())
-  poste           String?
-  competences     String?   @db.Text
-  date_embauche   DateTime?
-  
-  user            User      @relation(fields: [userId], references: [id])
-  userId          String    @unique // Relation 1-à-1 avec User
-  
-  entreprise      Entreprise @relation(fields: [entrepriseId], references: [id])
-  entrepriseId    String
+  id            String    @id @default(cuid())
+  poste         String?
+  competences   String?   @db.Text
+  date_embauche DateTime?
+
+  user          User      @relation(fields: [userId], references: [id])
+  userId        String    @unique
+  entreprise    Entreprise @relation(fields: [entrepriseId], references: [id])
+  entrepriseId  String
 }
 
 model Particulier {
-  id          String   @id @default(cuid())
-  adresse     String?  @db.Text
-  telephone   String?
-  interets    String?  @db.Text
-  
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String   @unique
+  id        String  @id @default(cuid())
+  adresse   String? @db.Text
+  telephone String?
+  interets  String? @db.Text
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
 }
 
 model Stagiaire {
-  id             String      @id @default(cuid())
+  id             String         @id @default(cuid())
   niveau_etudes  String?
   domaine_etudes String?
-  competences    String?     @db.Text
-  
-  user           User        @relation(fields: [userId], references: [id])
-  userId         String      @unique
-  
+  competences    String?        @db.Text
+
+  user           User           @relation(fields: [userId], references: [id])
+  userId         String         @unique
   demandes_stage DemandeStage[]
 }
 
 model Partenaire {
-  id                      String    @id @default(cuid())
-  type_partenariat        String?
-  date_debut_partenariat  DateTime?
-  date_fin_partenariat    DateTime?
-  
-  user                    User      @relation(fields: [userId], references: [id])
-  userId                  String    @unique
-  
-  prestations             Prestation[]
+  id                       String       @id @default(cuid())
+  type_partenariat         String?
+  date_debut_partenariat   DateTime?
+  date_fin_partenariat     DateTime?
+
+  user        User         @relation(fields: [userId], references: [id])
+  userId      String       @unique
+  prestations Prestation[]
 }
 
 model Evenement {
-  id              String    @id @default(cuid())
-  titre           String
-  description     String?   @db.Text
-  date_debut      DateTime?
-  date_fin        DateTime?
-  lieu            String?
-  
-  createur        User      @relation("CreateurEvenement", fields: [createurId], references: [id])
-  createurId      String
-  
-  participations  ParticipationEvenement[]
+  id             String                   @id @default(cuid())
+  titre          String
+  description    String?                  @db.Text
+  date_debut     DateTime?
+  date_fin       DateTime?
+  lieu           String?
+
+  createur       User                     @relation("CreateurEvenement", fields: [createurId], references: [id])
+  createurId     String
+  participations ParticipationEvenement[]
 }
 
 model Prestation {
-  id              String    @id @default(cuid())
-  titre           String
-  description     String?   @db.Text
-  tarif           Decimal?
-  
-  entreprise      Entreprise @relation(fields: [entrepriseId], references: [id])
-  entrepriseId    String
-  
-  partenaire      Partenaire? @relation(fields: [partenaireId], references: [id])
-  partenaireId    String?
+  id           String    @id @default(cuid())
+  titre        String
+  description  String?   @db.Text
+  tarif        Decimal?
+
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id])
+  entrepriseId String
+  partenaire   Partenaire? @relation(fields: [partenaireId], references: [id])
+  partenaireId String?
 }
 
 model Stage {
-  id                    String   @id @default(cuid())
-  titre                 String
-  description           String?
-  date_debut            DateTime?
-  date_fin              DateTime?
-  // [MODIFIÉ] Ajout des champs manquants
-  duree_stage           String?   // ex: "6 mois"
-  competences_requises  String?
-  niveau_etude_requis   String?   // ex: "Bac+5"
-  remunere              Boolean   @default(false)
+  id                   String   @id @default(cuid())
+  titre                String
+  description          String?
+  date_debut           DateTime?
+  date_fin             DateTime?
+  duree_stage          String?
+  competences_requises String?
+  niveau_etude_requis  String?
+  remunere             Boolean  @default(false)
 
-  entrepriseId          String
-  entreprise            Entreprise @relation(fields: [entrepriseId], references: [id])
-
-  demandes DemandeStage[] // Relation vers les demandes
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id])
+  demandes     DemandeStage[]
 }
 
 model Annonce {
-  id                String    @id @default(cuid())
-  titre             String
-  contenu           String?   @db.Text
-  date_publication  DateTime? @default(now())
-  
-  createur          User      @relation("CreateurAnnonce", fields: [createurId], references: [id])
-  createurId        String
-  
-  commentaires      Commentaire[]
-  reactions         ReactionAnnonce[]
+  id               String            @id @default(cuid())
+  titre            String
+  contenu          String?           @db.Text
+  date_publication DateTime?         @default(now())
+
+  createur         User              @relation(fields: [createurId], references: [id])
+  createurId       String
+  commentaires     Commentaire[]
+  reactions        ReactionAnnonce[]
 }
 
 model Commentaire {
-  id              String    @id @default(cuid())
-  contenu         String    @db.Text
-  date_creation   DateTime  @default(now())
-  
-  annonce         Annonce   @relation(fields: [annonceId], references: [id])
-  annonceId       String
-  
-  abonne          User      @relation(fields: [abonneId], references: [id])
-  abonneId        String
+  id            String   @id @default(cuid())
+  contenu       String   @db.Text
+  date_creation DateTime @default(now())
+
+  annonce     Annonce @relation(fields: [annonceId], references: [id])
+  annonceId   String
+  abonne      User    @relation("auteur_commentaire", fields: [abonneId], references: [id])
+  abonneId    String
 }
 
 model DemandeStage {
-  id                String       @id @default(cuid())
-  date_demande      DateTime     @default(now())
+  id                String        @id @default(cuid())
+  date_demande      DateTime      @default(now())
   statut            StatutDemande @default(en_attente)
   lettre_motivation String?
   cv_path           String?
 
-  stageId           String
-  stagiaireId       String
-  stage             Stage        @relation(fields: [stageId], references: [id], onDelete: Cascade)
-  stagiaire         Stagiaire    @relation(fields: [stagiaireId], references: [id], onDelete: Cascade)
+  stageId     String
+  stagiaireId String
+  stage       Stage     @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  stagiaire   Stagiaire @relation(fields: [stagiaireId], references: [id], onDelete: Cascade)
 
-  @@unique([stageId, stagiaireId]) // Garantit qu'un stagiaire ne peut postuler qu'une seule fois à un même stage
+  @@unique([stageId, stagiaireId])
 }
 
 model ParticipationEvenement {
-  id            String                @id @default(cuid())
-  statut        StatutParticipation   @default(inscrit)
-  
-  evenement     Evenement             @relation(fields: [evenementId], references: [id])
-  evenementId   String
-  
-  abonne        User                  @relation(fields: [abonneId], references: [id])
-  abonneId      String
+  id          String              @id @default(cuid())
+  statut      StatutParticipation @default(inscrit)
+
+  evenement   Evenement @relation(fields: [evenementId], references: [id])
+  evenementId String
+  abonne      User      @relation(fields: [abonneId], references: [id])
+  abonneId    String
 }
 
 model ReactionAnnonce {
-  id             String            @id @default(cuid())
-  type_reaction  TypeReactionEnum
-  date_reaction  DateTime          @default(now())
-  
-  annonce        Annonce           @relation(fields: [annonceId], references: [id])
-  annonceId      String
-  
-  abonne         User              @relation(fields: [abonneId], references: [id])
-  abonneId       String
+  id            String           @id @default(cuid())
+  type_reaction TypeReactionEnum
+  date_reaction DateTime         @default(now())
+
+  annonce     Annonce @relation(fields: [annonceId], references: [id])
+  annonceId   String
+  abonne      User    @relation("auteur_reaction", fields: [abonneId], references: [id])
+  abonneId    String
 }
 
 // =================================================================
-// VOS ENUMS (DIRECTEMENT DANS LE SCHEMA PRISMA)
+// ENUMS
 // =================================================================
 
 enum TypeAbonne {
+  client
   entreprise
   employe
   particulier
   stagiaire
   partenaire
+}
+
+enum UserRole {
+  USER
+  ADMIN
 }
 
 enum StatutDemande {
