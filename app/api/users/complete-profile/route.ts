@@ -21,74 +21,96 @@ export async function POST(request: Request) {
 
     const userTypeEnum = type as TypeAbonne;
 
-    // Mise à jour du type de l'utilisateur principal
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: { type: userTypeEnum },
-    });
-
-    // Création de la fiche détaillée correspondante
-    switch (userTypeEnum) {
-      case 'entreprise':
-        await prisma.entreprise.create({
-          data: {
-            userId: session.user.id,
-            raison_sociale: profileData.raison_sociale,
-            siret: profileData.siret,
-            secteur_activite: profileData.secteur_activite,
-            adresse: profileData.adresse,
-            telephone: profileData.telephone,
-          }
-        });
-        break;
-      
-      case 'stagiaire':
-        await prisma.stagiaire.create({
-          data: {
-            userId: session.user.id,
-            niveau_etudes: profileData.niveau_etudes,
-            domaine_etudes: profileData.domaine_etudes,
-            competences: profileData.competences,
-          }
-        });
-        break;
-
-      case 'employe':
-        // Vérifier que l'entreprise existe grâce à son SIRET
-        const company = await prisma.entreprise.findUnique({
-          where: { siret: profileData.siret_entreprise }
-        });
-
-        if (!company) {
-          return new NextResponse("Aucune entreprise trouvée avec ce numéro de SIRET.", { status: 404 });
+    // Utilisation d'une transaction pour garantir que toutes les opérations réussissent ou échouent ensemble
+    await prisma.$transaction(async (tx) => {
+      // 1. Mettre à jour le type de l'utilisateur.
+      // Pour une entreprise, on met aussi à jour le nom public.
+      if (userTypeEnum === 'entreprise') {
+        if (!profileData.nom_entreprise) {
+          throw new Error("Le nom de l'entreprise est requis.");
         }
-
-        await prisma.employe.create({
-          data: {
-            userId: session.user.id,
-            poste: profileData.poste,
-            entrepriseId: company.id, // On lie l'employé à l'ID de l'entreprise trouvée
-          }
+        await tx.user.update({
+          where: { id: session.user.id },
+          data: { 
+            type: userTypeEnum,
+            name: profileData.nom_entreprise // Synchronisation du nom public
+          },
         });
-        break;
+      } else {
+        await tx.user.update({
+          where: { id: session.user.id },
+          data: { type: userTypeEnum },
+        });
+      }
       
-      case 'partenaire':
-        await prisma.partenaire.create({
-          data: {
-            userId: session.user.id,
-            type_partenariat: profileData.type_partenariat
+      // 2. Créer la fiche détaillée correspondante au type de profil.
+      switch (userTypeEnum) {
+        case 'entreprise':
+          if (!profileData.raison_sociale) {
+            throw new Error("La raison sociale est requise.");
           }
-        });
-        break;
+          await tx.entreprise.create({
+            data: {
+              userId: session.user.id,
+              raison_sociale: profileData.raison_sociale, // Le nom légal
+              siret: profileData.siret,
+              secteur_activite: profileData.secteur_activite,
+              adresse: profileData.adresse,
+              telephone: profileData.telephone,
+            }
+          });
+          break;
         
-      default:
-        return new NextResponse("Type de profil invalide", { status: 400 });
-    }
+        case 'stagiaire':
+          await tx.stagiaire.create({
+            data: {
+              userId: session.user.id,
+              niveau_etudes: profileData.niveau_etudes,
+              domaine_etudes: profileData.domaine_etudes,
+              competences: profileData.competences,
+            }
+          });
+          break;
+
+        case 'employe':
+          const company = await tx.entreprise.findUnique({
+            where: { siret: profileData.siret_entreprise }
+          });
+          if (!company) {
+            throw new Error("Aucune entreprise trouvée avec ce numéro de SIRET.");
+          }
+          await tx.employe.create({
+            data: {
+              userId: session.user.id,
+              poste: profileData.poste,
+              competences: profileData.competences,
+              entrepriseId: company.id,
+            }
+          });
+          break;
+        
+        case 'partenaire':
+          await tx.partenaire.create({
+            data: {
+              userId: session.user.id,
+              type_partenariat: profileData.type_partenariat
+            }
+          });
+          break;
+          
+        case 'particulier':
+           await tx.particulier.create({ data: { userId: session.user.id } });
+           break;
+
+        default:
+          throw new Error("Type de profil invalide");
+      }
+    });
 
     return NextResponse.json({ success: true });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("ERREUR LORS DE LA FINALISATION DU PROFIL:", error);
-    return new NextResponse("Erreur interne du serveur", { status: 500 });
+    return new NextResponse(error.message || "Erreur interne du serveur", { status: 500 });
   }
 }

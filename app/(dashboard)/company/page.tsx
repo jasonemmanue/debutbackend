@@ -23,14 +23,15 @@ export default async function CompanyDashboardPage() {
     });
 
     if (!companyProfile) {
-        // Cela peut arriver si les données sont inconsistantes, rediriger vers la complétion
+        // Rediriger pour compléter le profil si la fiche entreprise n'existe pas
         redirect('/auth/complete-profile');
     }
 
     return (
         <div className="container mx-auto py-12 px-6 bg-gray-50 min-h-screen">
             <header className="mb-12">
-                <h1 className="text-4xl font-bold text-gray-800">Dashboard de {companyProfile.raison_sociale || session.user.name}</h1>
+                {/* MODIFICATION : Utilisation directe du nom de la session, qui est maintenant correct */}
+                <h1 className="text-4xl font-bold text-gray-800">Dashboard de {session.user.name}</h1>
                 <p className="text-lg text-gray-600">Gérez toutes les activités de votre entreprise ici.</p>
             </header>
 

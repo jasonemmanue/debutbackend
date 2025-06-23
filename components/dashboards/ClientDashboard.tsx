@@ -9,6 +9,8 @@ import Link from 'next/link';
 import { DashboardHero } from '../DashboardHero';
 import { SearchResults } from './SearchResults';
 import type { Session } from "next-auth";
+// AJOUT : Importation des composants Avatar
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ClientDashboardProps {
   user: Session["user"];
@@ -57,14 +59,6 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
     return () => clearTimeout(debounceTimer);
   }, [searchQuery, searchCompanies]);
   
-  const userProfile = {
-    name: user?.name || "Client",
-    type: "Particulier",
-    avatar: user?.image || "https://placehold.co/80x80/E0E7FF/3730A3?text=" + (user?.name?.charAt(0) || "C"),
-    interests: ["Technologie", "Marketing", "Développement"],
-    joinDate: "Janvier 2024"
-  };
-
   const userStats = [
     { title: "Entreprises suivies", value: "8", icon: Building2, color: "from-blue-500 to-cyan-500" },
     { title: "Candidatures", value: "3", icon: Briefcase, color: "from-purple-500 to-pink-500" },
@@ -125,18 +119,25 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
             <Card className="border-rose-100 shadow-lg">
               <CardContent className="p-6">
                 <div className="text-center mb-6">
-                  <img src={userProfile.avatar} alt={userProfile.name} className="w-20 h-20 rounded-full mx-auto mb-4 ring-4 ring-rose-100" />
-                  <h3 className="font-semibold text-gray-800">{userProfile.name}</h3>
-                  <Badge className="mt-2 bg-blue-100 text-blue-700">{userProfile.type}</Badge>
+                  
+                  <Avatar className="w-20 h-20 mx-auto mb-4 ring-4 ring-rose-100 text-3xl">
+                    <AvatarImage src={user?.image || ''} alt={user?.name || 'User Avatar'} />
+                    <AvatarFallback className="bg-blue-300 text-white font-semibold">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <h3 className="font-semibold text-gray-800">{user?.name}</h3>
+                  <Badge className="mt-2 bg-blue-100 text-blue-700">{user?.type}</Badge>
                   <div className="mt-3">
                     <h4 className="text-sm font-medium text-gray-500">Centres d'intérêt</h4>
                     <div className="flex flex-wrap justify-center gap-2 mt-2">
-                      {userProfile.interests.map((interest, index) => (
+                      {["Technologie", "Marketing", "Développement"].map((interest, index) => (
                         <Badge key={index} variant="outline" className="text-xs">{interest}</Badge>
                       ))}
                     </div>
                   </div>
-                  <p className="text-sm text-gray-400 mt-3">Membre depuis {userProfile.joinDate}</p>
+                  <p className="text-sm text-gray-400 mt-3">Membre depuis Janvier 2024</p>
                 </div>
                 <div className="space-y-3">
                   {userStats.map((stat, index) => (
@@ -158,7 +159,7 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
           <div className="col-span-9">
             <div className="bg-gradient-to-r from-rose-500 to-purple-600 rounded-2xl p-8 text-white mb-8">
               <h2 className="text-3xl font-light mb-2">
-                Bienvenue, <span className="font-semibold">{userProfile.name}</span> ! 👋
+                Bienvenue, <span className="font-semibold">{user?.name}</span> ! 👋
               </h2>
               <p className="text-rose-100 mb-4">
                 Votre espace personnel pour interagir avec notre réseau d'entreprises partenaires
@@ -169,7 +170,6 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
               </Button>
             </div>
 
-            {/* Grille de cartes principales (avec tous les boutons) */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               <Card className="hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-rose-100">
                 <CardHeader className="pb-3">
@@ -237,7 +237,6 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
                 </CardContent>
               </Card>
 
-              {/* BOUTON "MES ÉVÈNEMENTS" RÉINTÉGRÉ */}
               <Card className="hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-green-100">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3">
@@ -260,7 +259,6 @@ export function ClientDashboard({ user }: ClientDashboardProps) {
                 </CardContent>
               </Card>
               
-              {/* BOUTON "SUGGESTIONS" RÉINTÉGRÉ */}
               <Card className="hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-yellow-100">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3">

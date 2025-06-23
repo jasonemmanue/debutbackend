@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { LogOut, UserCircle, Settings } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +15,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -38,27 +43,17 @@ export function AuthButtons() {
   if (status === "authenticated") {
     const user = session.user;
     const isCompany = user?.type === 'entreprise' || user?.type === 'employe';
-
-    // CORRECTION : Le chemin a été modifié ici
     const dashboardUrl = isCompany ? "/company" : "/client/profile";
 
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            {user?.image ? (
-              <Image
-                src={user.image}
-                alt={user.name || "User Avatar"}
-                fill
-                className="rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center">
-                <UserCircle className="h-8 w-8 text-white" />
-              </div>
-            )}
-          </Button>
+          <Avatar className="h-10 w-10 cursor-pointer">
+            <AvatarImage src={user?.image || ''} alt={user?.name || 'User Avatar'} />
+            <AvatarFallback className="bg-blue-300 text-white font-semibold">
+              {user?.name?.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">

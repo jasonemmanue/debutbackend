@@ -27,18 +27,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: {  label: "Password", type: "password" }
       },
       async authorize(credentials, request: Request) {
-        // CORRECTION FINALE : Utilisation d'une garde de type robuste
-        // On vérifie que `credentials` existe et que `email` et `password` sont bien des chaînes de caractères.
         if (
           !credentials ||
           typeof credentials.email !== 'string' ||
           typeof credentials.password !== 'string'
         ) {
-          // Si les types ne sont pas corrects, on ne continue pas.
           return null;
         }
 
-        // Après cette garde, TypeScript sait que `credentials.email` et `credentials.password` sont des `string`.
         const { email, password } = credentials;
 
         const user = await prisma.user.findUnique({
@@ -62,13 +58,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user, trigger, session }) {
+      // Lors de la connexion initiale
       if (user) {
         token.id = user.id;
         token.type = (user as User).type;
+        // Le nom est déjà implicitement dans le token
       }
-      if (trigger === "update" && session?.type) {
-        token.type = session.type as TypeAbonne;
+      
+      // *** CORRECTION APPLIQUÉE ICI ***
+      // Lors de la mise à jour de la session (ex: après la complétion du profil)
+      if (trigger === "update" && session) {
+        if (session.type) {
+          token.type = session.type as TypeAbonne;
+        }
+        // On vérifie si un nouveau nom est fourni dans la mise à jour et on l'applique au token
+        if (session.name) {
+          token.name = session.name;
+        }
       }
+      
       return token;
     },
 
@@ -79,6 +87,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           ...session.user,
           id: token.id as string,
           type: token.type as TypeAbonne,
+          name: token.name, // S'assurer que le nom de la session reflète bien celui du token
         },
       };
     },

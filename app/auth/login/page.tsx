@@ -4,7 +4,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
+import { Separator } from "@/components/ui/separator" 
 import { Building2, Mail, Lock, ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"

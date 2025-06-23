@@ -2,19 +2,18 @@
 
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { PrismaClient, Particulier, Stagiaire, Partenaire, TypeAbonne } from "@prisma/client";
-import { ClientProfileForm } from './ClientProfileForm'; // Le composant client pour le formulaire
+import { PrismaClient, Particulier, Stagiaire, Partenaire, Employe, TypeAbonne } from "@prisma/client"; // Ajout de Employe
+import { ClientProfileForm } from './ClientProfileForm';
 
 const prisma = new PrismaClient();
 
-// Interface pour structurer les données. Elle est maintenant beaucoup plus précise.
 export interface ProfileData {
   id: string;
   name: string | null;
   email: string | null;
   image: string | null;
   type: TypeAbonne | null;
-  details: Particulier | Stagiaire | Partenaire | null;
+  details: Particulier | Stagiaire | Partenaire | Employe | null; // Ajout de Employe
 }
 
 export default async function ClientProfilePage() {
@@ -24,11 +23,12 @@ export default async function ClientProfilePage() {
         redirect('/auth/login');
     }
     
-    if (session.user.type === 'entreprise' || session.user.type === 'employe') {
+    // Un employé est maintenant géré comme un client, mais on redirige toujours l'entreprise
+    if (session.user.type === 'entreprise') {
         redirect('/company');
     }
 
-    let profileDetails: Particulier | Stagiaire | Partenaire | null = null;
+    let profileDetails: Particulier | Stagiaire | Partenaire | Employe | null = null;
     
     // Récupérer les détails du profil en fonction du type de l'utilisateur
     if (session.user.type === 'particulier') {
@@ -37,16 +37,17 @@ export default async function ClientProfilePage() {
         profileDetails = await prisma.stagiaire.findUnique({ where: { userId: session.user.id } });
     } else if (session.user.type === 'partenaire') {
         profileDetails = await prisma.partenaire.findUnique({ where: { userId: session.user.id } });
+    } else if (session.user.type === 'employe') { // AJOUT : cas pour l'employé
+        profileDetails = await prisma.employe.findUnique({ where: { userId: session.user.id } });
     }
 
-    // Création de l'objet de données avec une gestion sûre des valeurs `undefined`
     const profileData: ProfileData = {
       id: session.user.id,
-      name: session.user.name ?? null,         // CORRIGÉ: undefined -> null
-      email: session.user.email ?? null,        // CORRIGÉ: undefined -> null
-      image: session.user.image ?? null,        // CORRIGÉ: undefined -> null
+      name: session.user.name ?? null,
+      email: session.user.email ?? null,
+      image: session.user.image ?? null,
       type: session.user.type,
-      details: profileDetails,                  // CORRIGÉ: Le type correspond maintenant
+      details: profileDetails,
     }
 
     return <ClientProfileForm profile={profileData} />;
