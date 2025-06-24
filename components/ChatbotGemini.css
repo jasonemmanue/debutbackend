@@ -1,0 +1,30 @@
+/* components/ChatbotGemini.css */
+/* Inspiré de votre fichier ChatbotGemini.css */
+
+.chatbot-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.chatbot-messages {
+  flex-grow: 1;
+}
+
+/* Styles pour les messages - ajustés pour une meilleure distinction */
+.message.user {
+  background-color: #3b82f6; /* bg-blue-500 */
+  color: white;
+  align-self: flex-end;
+  margin-left: auto;
+  text-align: right;
+  border-radius: 1rem 1rem 0.25rem 1rem;
+}
+
+.message.bot {
+  background-color: #e5e7eb; /* bg-gray-200 */
+  color: #1f2937; /* text-gray-800 */
+  align-self: flex-start;
+  margin-right: auto;
+  text-align: left;
+  border-radius: 1rem 1rem 1rem 0.25rem;
+}

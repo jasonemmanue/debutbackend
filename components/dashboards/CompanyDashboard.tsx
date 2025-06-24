@@ -20,11 +20,12 @@ import {
   Activity,
   ChevronRight,
   Building2,
-  Handshake // Ajout de l'icône pour les prestations
+  Handshake
 } from "lucide-react";
 import Link from 'next/link';
 import { DashboardHero } from "../DashboardHero";
 import type { Session } from "next-auth";
+import { ChatbotTrigger } from '../ChatbotTrigger';
 
 interface CompanyDashboardProps {
   user: Session["user"];
@@ -109,6 +110,7 @@ export function CompanyDashboard({ user }: CompanyDashboardProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-purple-50">
+      <ChatbotTrigger />
       <div className="container mx-auto px-6 py-8">
         {/* Message de bienvenue avec gradient */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-3xl p-8 mb-8 text-white shadow-2xl">
@@ -328,7 +330,6 @@ export function CompanyDashboard({ user }: CompanyDashboardProps) {
                   className="w-full border-purple-200 hover:bg-purple-50 h-12"
                   asChild
                 >
-                  {/* CORRECTION : Le lien pointe maintenant vers le bon chemin */}
                   <Link href="/company/announcements/events">
                     <Calendar className="w-4 h-4 mr-2" />
                     Gérer mes événements
