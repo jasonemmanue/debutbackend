@@ -1,132 +1,131 @@
-// app/(dashboard)/client/events/page.tsx
-"use client"
+// /app/(dashboard)/client/events/page.tsx
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import prisma from "@/lib/prisma";
+import React from 'react';
+import Link from "next/link";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Calendar, MapPin, Clock, Building2 } from "lucide-react";
 
-import React, { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import {
-  Search, Calendar, ArrowRight, ChevronLeft, 
-  Clock, Bell, Settings, TrendingUp, MessageSquare,
-  CheckCircle2, XCircle, MapPin, Users, Plus,
-  FileText, Briefcase, ChevronDown, Filter
-} from "lucide-react"
-
-// Note: Les données sont maintenant simulées car nous n'avons pas la logique de récupération
-// de données réelles pour cette page spécifique. Vous devrez remplacer cela par une
-// récupération de données similaire à celle de la page "Mes Candidatures".
-export default function MyEventsPage() {
-  const [activeTab, setActiveTab] = useState("events")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [activeEventTab, setActiveEventTab] = useState("upcoming")
-
-  const userProfile = {
-    name: "Jean Dupont",
-    type: "Particulier",
-    avatar: "https://placehold.co/80x80/E0E7FF/3730A3?text=JD",
-    interests: ["Technologie", "Marketing", "Développement"],
-    joinDate: "Janvier 2024"
+// Le composant pour le badge de statut (Inscrit, etc.) reste inchangé
+const StatusBadge = ({ status }: { status: string }) => {
+  switch (status) {
+    case 'inscrit':
+      return <Badge className="bg-green-100 text-green-700">Inscrit(e)</Badge>;
+    case 'present':
+      return <Badge className="bg-blue-100 text-blue-700">Présent(e)</Badge>;
+    case 'absent':
+      return <Badge variant="destructive">Absent(e)</Badge>;
+    default:
+      return <Badge variant="secondary">Statut inconnu</Badge>;
   }
+};
 
-  const events = [
-    {
-      id_calendrier_entree: 1,
-      statut_participation: "confirmed",
-      event: {
-        id: 101,
-        title: "Forum des Métiers Tech",
-        date: "2025-07-15",
-        time: "09:00",
-        location: "Paris Expo Porte de Versailles",
-        organizer: "Tech Alliance",
-        category: "Forum emploi",
-        capacity: 500,
-        registered: 245,
+// Composant réutilisable pour afficher une carte d'événement, maintenant simplifié
+const EventCard = ({ event, isCurrent = false }: { event: any, isCurrent?: boolean }) => (
+    <Card className="hover:shadow-lg transition-shadow">
+      <CardContent className="p-6">
+        {/* Le div principal n'a plus besoin de "flex justify-between" */}
+        <div> 
+          <h3 className="font-bold text-lg">{event.titre}</h3>
+          <div className="flex items-center mt-2 space-x-2 flex-wrap gap-y-1">
+            <Link href={event.createur?.entreprise ? `/company/${event.createur.entreprise.id}` : '#'}>
+                <Badge variant="outline" className="hover:bg-gray-100 cursor-pointer">
+                    <Building2 className="h-3 w-3 mr-1.5"/>
+                    par: {event.createur.name}
+                </Badge>
+            </Link>
+            {isCurrent && <Badge className="bg-lime-100 text-lime-800"><Clock className="h-3 w-3 mr-1"/>En cours</Badge>}
+          </div>
+          <div className="mt-3 text-sm text-gray-600 space-y-1">
+            <p className="flex items-center">
+              <Calendar className="h-4 w-4 mr-1.5" />
+              Du {event.date_debut ? format(new Date(event.date_debut), 'd MMM, HH:mm', { locale: fr }) : 'N/A'}
+              {' au '}
+              {event.date_fin ? format(new Date(event.date_fin), 'd MMM, HH:mm', { locale: fr }) : 'N/A'}
+            </p>
+            <p className="flex items-center"><MapPin className="h-4 w-4 mr-1.5" />{event.lieu || 'Lieu à confirmer'}</p>
+          </div>
+        </div>
+        {/* Le bouton "S'inscrire" a été retiré d'ici */}
+      </CardContent>
+    </Card>
+);
+
+// [REMARQUE] Le nom de la fonction a été changé pour éviter toute confusion avec la page publique /events
+export default async function ClientDashboardEventsPage() {
+  const session = await auth();
+  if (!session?.user?.id) redirect('/auth/login');
+
+  const allEvents = await prisma.evenement.findMany({
+    include: {
+      createur: { 
+        select: { 
+          name: true,
+          entreprise: { select: { id: true } } 
+        } 
       }
     },
-    {
-      id_calendrier_entree: 2,
-      statut_participation: "pending",
-      event: {
-        id: 102,
-        title: "Atelier CV et LinkedIn",
-        date: "2025-08-22",
-        time: "14:00",
-        location: "En ligne",
-        organizer: "CareerBoost",
-        category: "Atelier",
-        capacity: 100,
-        registered: 78,
-      }
+    orderBy: { date_debut: 'asc' }
+  });
+
+  const now = new Date();
+  
+  const upcomingEvents: typeof allEvents = [];
+  const pastEvents: typeof allEvents = [];
+  const currentEvents: typeof allEvents = [];
+
+  for (const event of allEvents) {
+    const startDate = event.date_debut ? new Date(event.date_debut) : null;
+    const endDate = event.date_fin ? new Date(event.date_fin) : null;
+
+    if (!startDate || !endDate) continue;
+
+    if (startDate > now) {
+      upcomingEvents.push(event);
+    } else if (endDate < now) {
+      pastEvents.push(event);
+    } else {
+      currentEvents.push(event);
     }
-  ]
-
-  const upcomingEvents = events.filter(ev => 
-    new Date(ev.event.date) >= new Date() && (ev.statut_participation === "confirmed" || ev.statut_participation === "pending")
-  )
-  const pastEvents = events.filter(ev => 
-    new Date(ev.event.date) < new Date() || ev.statut_participation === "cancelled"
-  )
-
-  const onBackToHome = () => {
-    // Logique pour retourner en arrière
-    console.log("Retour");
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-purple-50 p-6 sm:p-8">
-       <div className="flex items-center justify-between mb-8">
-            <h1 className="text-3xl font-bold text-gray-800">Mes Événements</h1>
-            <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Trouver un événement
-            </Button>
-        </div>
-        
-        <div className="flex border-b mb-6">
-            <button onClick={() => setActiveEventTab("upcoming")} className={`px-4 py-2 font-medium text-sm ${activeEventTab === "upcoming" ? "border-b-2 border-purple-500 text-purple-600" : "text-gray-500 hover:text-gray-700"}`}>
-                À venir
-            </button>
-            <button onClick={() => setActiveEventTab("past")} className={`px-4 py-2 font-medium text-sm ${activeEventTab === "past" ? "border-b-2 border-purple-500 text-purple-600" : "text-gray-500 hover:text-gray-700"}`}>
-                Passés/Annulés
-            </button>
-        </div>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">Événements du Réseau</h1>
+      </div>
 
-        {activeEventTab === "upcoming" && (
-          <div className="space-y-4">
-            {upcomingEvents.length > 0 ? (
-              upcomingEvents.map((ev) => (
-                <Card key={ev.id_calendrier_entree}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-bold text-lg">{ev.event.title}</h3>
-                        <div className="flex items-center mt-1 space-x-2">
-                          <Badge variant="outline">{ev.event.category}</Badge>
-                          <Badge className={ev.statut_participation === "confirmed" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}>
-                            {ev.statut_participation === "confirmed" ? "Confirmé" : "En attente"}
-                          </Badge>
-                        </div>
-                        <div className="mt-3 text-sm text-gray-600 space-y-1">
-                          <p className="flex items-center"><Calendar className="h-4 w-4 mr-1.5" />{new Date(ev.event.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} • {ev.event.time}</p>
-                          <p className="flex items-center"><MapPin className="h-4 w-4 mr-1.5" />{ev.event.location}</p>
-                          <p className="flex items-center"><Users className="h-4 w-4 mr-1.5" />{ev.event.registered}/{ev.event.capacity} participants</p>
-                        </div>
-                      </div>
-                      <div className="flex flex-col space-y-2">
-                        <Button variant="outline" size="sm">Voir détails</Button>
-                        <Button variant="destructive" size="sm">Annuler</Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <Card><CardContent className="p-8 text-center"><p>Aucun événement à venir.</p></CardContent></Card>
-            )}
-          </div>
-        )}
-        {/* ... Ajouter la logique pour les événements passés ... */}
+      <div className="space-y-12">
+        <div>
+          <h2 className="text-2xl font-semibold mb-4 text-green-700">En ce moment</h2>
+          {currentEvents.length > 0 ? (
+            <div className="space-y-4">{currentEvents.map(event => <EventCard key={event.id} event={event} isCurrent={true} />)}</div>
+          ) : (
+            <Card><CardContent className="p-8 text-center"><p className="text-gray-500">Aucun événement en cours pour le moment.</p></CardContent></Card>
+          )}
+        </div>
+        <div>
+          <h2 className="text-2xl font-semibold mb-4 text-gray-700">Prochainement</h2>
+          {upcomingEvents.length > 0 ? (
+            <div className="space-y-4">{upcomingEvents.map(event => <EventCard key={event.id} event={event} />)}</div>
+          ) : (
+            <Card><CardContent className="p-8 text-center"><p className="text-gray-500">Aucun événement à venir.</p></CardContent></Card>
+          )}
+        </div>
+        <div>
+          <h2 className="text-2xl font-semibold mb-4 text-gray-700">Événements passés</h2>
+          {pastEvents.length > 0 ? (
+            <div className="space-y-4 opacity-70">{pastEvents.map(event => <EventCard key={event.id} event={event} />)}</div>
+          ) : (
+            <Card><CardContent className="p-8 text-center"><p className="text-gray-500">Aucun événement passé.</p></CardContent></Card>
+          )}
+        </div>
+      </div>
     </div>
-  )
+  );
 }

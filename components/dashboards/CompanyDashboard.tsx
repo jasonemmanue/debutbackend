@@ -328,9 +328,10 @@ export function CompanyDashboard({ user }: CompanyDashboardProps) {
                   className="w-full border-purple-200 hover:bg-purple-50 h-12"
                   asChild
                 >
-                  <Link href="/company/events">
+                  {/* CORRECTION : Le lien pointe maintenant vers le bon chemin */}
+                  <Link href="/company/announcements/events">
                     <Calendar className="w-4 h-4 mr-2" />
-                    Créer un événement
+                    Gérer mes événements
                   </Link>
                 </Button>
                 

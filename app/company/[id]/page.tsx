@@ -15,7 +15,6 @@ import { CompanyActionButtons } from './CompanyActionButtons';
 interface CompanyData {
   id: string;
   user: { name: string | null };
-  siret: string | null;
   secteur_activite: string | null;
   adresse: string | null;
   telephone: string | null;
@@ -23,7 +22,7 @@ interface CompanyData {
   description: string;
   logo: string;
   coverImage: string;
-  website: string;
+  website: string | null; // Peut être null
   verified: boolean;
 }
 
@@ -44,15 +43,14 @@ export default async function CompanyProfilePage({ params }: { params: { id: str
   const companyProfile: CompanyData = {
     id: company.id,
     user: { name: company.user.name || "Nom non défini" },
-    siret: company.siret,
     secteur_activite: company.secteur_activite || "Non spécifié",
-    adresse: company.adresse || "Non spécifiée",
-    telephone: company.telephone,
+    adresse: company.adresse || "Adresse non spécifiée",
+    telephone: company.contacts?.[0] || null,
     tagline: `Leader en ${company.secteur_activite || 'solutions innovantes'}.`,
     description: `Depuis notre création, ${company.user.name} se consacre à fournir l'excellence dans le secteur de ${company.secteur_activite}. Notre engagement envers la qualité et la satisfaction client est notre priorité.`,
     logo: logoUrl,
     coverImage: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=80",
-    website: `www.${company.user.name?.toLowerCase().replace(/\s/g, '')}.com`,
+    website: company.site_web, // On utilise directement le champ de la BDD
     verified: true
   };
 
@@ -63,15 +61,16 @@ export default async function CompanyProfilePage({ params }: { params: { id: str
           <Image src={companyProfile.coverImage} alt={`${companyProfile.user.name} cover`} fill className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
         </div>
+        
         <div className="container mx-auto px-6">
           <div className="relative -mt-20 z-10">
             <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border-0">
               <CardContent className="p-6 md:p-8">
                 <div className="flex flex-col md:flex-row items-start md:items-center space-y-6 md:space-y-0 md:space-x-8">
-                  <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden shadow-xl">
+                  <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden shadow-xl flex-shrink-0">
                     <Image src={companyProfile.logo} alt={companyProfile.user.name || "Logo"} fill className="object-cover" />
                     {companyProfile.verified && (
-                      <div className="absolute top-1 right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
+                      <div className="absolute top-1 right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-white" title="Entreprise vérifiée">
                         <CheckCircle className="h-4 w-4 text-white" />
                       </div>
                     )}
@@ -82,14 +81,21 @@ export default async function CompanyProfilePage({ params }: { params: { id: str
                       <Badge className="bg-rose-100 text-rose-700">{companyProfile.secteur_activite}</Badge>
                     </div>
                     <p className="text-lg text-gray-600 mb-4">{companyProfile.tagline}</p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <div className="flex items-center space-x-4 text-sm text-gray-500 flex-wrap">
                       <div className="flex items-center"><MapPin className="h-4 w-4 mr-1" />{companyProfile.adresse}</div>
-                      <a href={`https://${companyProfile.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-rose-600">
-                        <Globe className="h-4 w-4 mr-1" />{companyProfile.website}
-                      </a>
+                      {/* On n'affiche le lien que si le site web existe */}
+                      {companyProfile.website && (
+                        <a href={`https://${companyProfile.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-rose-600">
+                            <Globe className="h-4 w-4 mr-1" />{companyProfile.website}
+                        </a>
+                      )}
                     </div>
                   </div>
-                  <CompanyActionButtons companyId={companyProfile.id} />
+                  {/* [MODIFIÉ] On passe l'URL du site web au composant des boutons */}
+                  <CompanyActionButtons 
+                    companyId={companyProfile.id}
+                    websiteUrl={companyProfile.website} 
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -97,7 +103,7 @@ export default async function CompanyProfilePage({ params }: { params: { id: str
         </div>
       </section>
       
-      {/* [CORRIGÉ] Section avec les 4 boutons rétablis */}
+      {/* Le reste du fichier reste identique... */}
       <section className="container mx-auto px-6 py-12">
         <Card>
             <CardHeader>
@@ -122,7 +128,7 @@ export default async function CompanyProfilePage({ params }: { params: { id: str
                         <h3 className="mt-4 font-semibold text-lg text-gray-700">Événements</h3>
                     </div>
                 </Link>
-                 <Link href={`/company/${companyProfile.id}/announcements`} passHref>
+                <Link href={`/company/${companyProfile.id}/announcements`} passHref>
                     <div className="p-6 border rounded-lg hover:shadow-lg hover:border-purple-300 transition-all text-center group cursor-pointer">
                         <Star className="h-8 w-8 mx-auto text-gray-400 group-hover:text-purple-500 transition-colors"/>
                         <h3 className="mt-4 font-semibold text-lg text-gray-700">Annonces</h3>

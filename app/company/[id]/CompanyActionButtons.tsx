@@ -1,76 +1,65 @@
-// /app/company/[id]/CompanyActionButtons.tsx
-"use client";
+'use client'
 
-import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Heart, MessageCircle } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useToast } from "@/hooks/use-toast";
+import { UserPlus, UserCheck, Share2, Loader2, Globe } from "lucide-react";
+import { useState, useEffect } from "react";
+import Link from "next/link"; // Link n'est pas utilisé ici, mais on peut le garder pour d'autres usages
 
+// Interface pour définir les props du composant
 interface CompanyActionButtonsProps {
   companyId: string;
+  websiteUrl: string | null; // Peut être null si l'entreprise n'a pas de site
 }
 
-export function CompanyActionButtons({ companyId }: CompanyActionButtonsProps) {
-  const { data: session } = useSession();
+export function CompanyActionButtons({ companyId, websiteUrl }: CompanyActionButtonsProps) {
+  const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Vérifier si l'utilisateur suit déjà cette entreprise
+  // Simule la vérification du statut "suivi" au chargement du composant
   useEffect(() => {
-    if (!session?.user) {
-      setIsLoading(false);
-      return;
-    }
-
-    const checkFollowStatus = async () => {
-      // Dans une application réelle, on pourrait avoir un endpoint GET /api/follow/status?entrepriseId=...
-      // Pour la démo, on simule en se basant sur une recherche qui nous retourne le statut
-      // Ici, on suppose "false" par défaut et laissons l'utilisateur cliquer.
-      setIsLoading(false);
-    };
-
-    checkFollowStatus();
-  }, [session, companyId]);
-
-  const handleFollowToggle = async () => {
-    const originalFollowStatus = isFollowing;
-    setIsFollowing(!isFollowing); // Mise à jour optimiste
-
-    try {
-      const response = await fetch('/api/follow', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          entrepriseId: companyId,
-          action: originalFollowStatus ? 'unfollow' : 'follow'
-        })
-      });
-      if (!response.ok) throw new Error("La requête a échoué");
-    } catch (error) {
-      setIsFollowing(originalFollowStatus); // Rollback
-      console.error("Erreur lors du suivi/non-suivi", error);
-    }
-  };
-
-  if (!session) {
-    return null; // Ne pas afficher les boutons si l'utilisateur n'est pas connecté
-  }
-
-  if (isLoading) {
-    return <div className="h-24 w-full md:w-auto animate-pulse bg-gray-200 rounded-md"></div>;
+    // Dans une vraie application, vous feriez un appel API ici
+    // pour vérifier si l'utilisateur connecté suit déjà cette entreprise.
+    // Pour l'exemple, on initialise à 'false'.
+    setIsFollowing(false); 
+    setIsLoading(false);
+  }, [companyId]);
+  
+  // Gère la logique de suivi / non-suivi
+  const handleFollow = () => {
+    setIsLoading(true);
+    // Ici, vous feriez un appel API pour mettre à jour la BDD
+    setTimeout(() => { // Simule le délai de l'appel API
+        setIsFollowing(!isFollowing);
+        setIsLoading(false);
+        toast({ 
+            title: isFollowing ? "Vous ne suivez plus cette entreprise." : "Vous suivez maintenant cette entreprise !",
+            description: "Vos préférences ont été mises à jour.",
+        });
+    }, 500);
   }
 
   return (
-    <div className="flex flex-col space-y-3 w-full md:w-auto">
-      <Button onClick={handleFollowToggle} variant={isFollowing ? "outline" : "default"} className="w-full">
-        {isFollowing ? 
-          <><CheckCircle className="h-4 w-4 mr-2" />Suivi</> : 
-          <><Heart className="h-4 w-4 mr-2" />Suivre</>
-        }
+    <div className="flex items-center space-x-2 flex-wrap gap-2">
+      {/* Bouton pour suivre l'entreprise */}
+      <Button onClick={handleFollow} variant={isFollowing ? 'secondary' : 'default'} disabled={isLoading}>
+        {isLoading ? <Loader2 className="animate-spin mr-2" /> : isFollowing ? <UserCheck className="h-4 w-4 mr-2"/> : <UserPlus className="h-4 w-4 mr-2"/>}
+        {isFollowing ? 'Suivi' : 'Suivre'}
       </Button>
-      <Button variant="outline" className="w-full">
-        <MessageCircle className="h-4 w-4 mr-2" />Contacter
-      </Button>
+      
+      {/* Bouton pour consulter le site web, s'affiche conditionnellement */}
+      {websiteUrl && (
+        <a href={`https://${websiteUrl}`} target="_blank" rel="noopener noreferrer">
+            <Button variant="outline" className="bg-green-50 hover:bg-green-100 border-green-200 text-green-700">
+                <Globe className="h-4 w-4 mr-2"/>
+                Consulter notre site
+            </Button>
+        </a>
+      )}
+
+      {/* Bouton pour partager */}
+      <Button variant="outline"><Share2 className="h-4 w-4 mr-2"/> Partager</Button>
     </div>
-  );
+  )
 }
