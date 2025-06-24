@@ -5,11 +5,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-// CORRECTION : Ajout de l'icône 'Calendar' à l'importation
 import { Search, ChevronDown, Loader2, Map, MapPin, ArrowRight, Building2, ChevronLeft, ChevronRight, Clock, Eye, Handshake, Star, TrendingUp, Users, Calendar } from "lucide-react";
 import { PublicCompanyCard } from '../PublicCompanyCard';
+import { TopCompanyCard } from '../TopCompanyCard';
 
-// Interface pour typer les résultats de recherche
+// Interfaces pour les données
 interface CompanySearchResult {
   id: string;
   user: { name: string | null };
@@ -19,6 +19,15 @@ interface CompanySearchResult {
   pays: string | null;
   site_web: string | null;
 }
+
+interface TopRankedCompany {
+  id: string;
+  name: string;
+  logo: string;
+  sector: string;
+  followerCount: number;
+}
+
 
 export default function PublicLandingPage() {
   const [searchCompanyName, setSearchCompanyName] = useState("");
@@ -36,7 +45,12 @@ export default function PublicLandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentBgSlide, setCurrentBgSlide] = useState(0);
 
-  // Données simulées pour les sections existantes
+  // États pour le classement des entreprises
+  const [topCompanies, setTopCompanies] = useState<TopRankedCompany[]>([]);
+  const [isLoadingTop, setIsLoadingTop] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(5); // Affiche 5 par défaut
+
+
   const backgroundImages = [
     "https://images.unsplash.com/photo-1556761175-4b46a572b786?w=1200&h=800&fit=crop",
     "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&h=800&fit=crop",
@@ -48,12 +62,26 @@ export default function PublicLandingPage() {
     { id: 2, title: "GreenEnergy signe un contrat majeur", company: "GreenEnergy France", excerpt: "Partenariat stratégique pour l'énergie solaire.", image: "https://placehold.co/600x400/A7F3D0/047857?text=Énergie+Solaire", date: "Il y a 4 heures", views: "856" },
   ];
   
-  const topCompanies = [
-    { name: "TechCorp", logo: "https://placehold.co/80x80/E0E7FF/3730A3?text=TC", sector: "Technologie" },
-    { name: "GreenEnergy", logo: "https://placehold.co/80x80/D1FAE5/065F46?text=GE", sector: "Énergie" },
-    { name: "FinanceMax", logo: "https://placehold.co/80x80/FEF2F2/991B1B?text=FM", sector: "Finance" },
-    { name: "HealthPlus", logo: "https://placehold.co/80x80/FEFEE2/854D0E?text=HP", sector: "Santé" },
-  ];
+  // useEffect pour récupérer les entreprises classées
+  useEffect(() => {
+    const fetchTopCompanies = async () => {
+      setIsLoadingTop(true);
+      try {
+        const response = await fetch('/api/companies/top-ranked');
+        if (!response.ok) {
+          throw new Error('Erreur lors du chargement du classement');
+        }
+        const data = await response.json();
+        setTopCompanies(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoadingTop(false);
+      }
+    };
+
+    fetchTopCompanies();
+  }, []);
   
   // Fetch countries on mount
   useEffect(() => {
@@ -245,26 +273,43 @@ export default function PublicLandingPage() {
         </section>
       )}
 
-      {/* Sections existantes */}
+      {/* Section TOP ENTREPRISES mise à jour */}
       <section className="py-16 px-6 bg-gradient-to-br from-rose-50 to-purple-50">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-light mb-4 text-gray-800">TOP <span className="font-normal text-rose-600">ENTREPRISES</span></h2>
             <p className="text-lg text-gray-600">Les entreprises les mieux notées de notre réseau</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {topCompanies.map((company, index) => (
-              <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-rose-100 hover:border-rose-300 bg-white/90 backdrop-blur-sm">
-                <CardContent className="p-6 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r from-rose-100 to-purple-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <img src={company.logo} alt={company.name} width={40} height={40} className="rounded-lg" />
-                  </div>
-                  <h3 className="font-semibold text-gray-800 mb-1">{company.name}</h3>
-                  <p className="text-sm text-gray-500">{company.sector}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          
+          {isLoadingTop ? (
+            <div className="flex justify-center items-center h-40">
+                <Loader2 className="animate-spin h-12 w-12 text-rose-500" />
+            </div>
+          ) : topCompanies.length > 0 ? (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                {topCompanies.slice(0, visibleCount).map((company) => (
+                  <TopCompanyCard key={company.id} company={company} />
+                ))}
+              </div>
+              
+              {topCompanies.length > 5 && (
+                <div className="text-center mt-12">
+                  {visibleCount === 5 ? (
+                    <Button onClick={() => setVisibleCount(topCompanies.length)} size="lg" variant="outline" className="border-rose-300 text-rose-600 hover:bg-rose-50 px-8">
+                        Voir plus
+                    </Button>
+                  ) : (
+                     <Button onClick={() => setVisibleCount(5)} size="lg" variant="outline" className="border-rose-300 text-rose-600 hover:bg-rose-50 px-8">
+                        Voir moins
+                    </Button>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-center text-gray-500">Aucune entreprise à classer pour le moment.</p>
+          )}
         </div>
       </section>
 
@@ -307,7 +352,6 @@ export default function PublicLandingPage() {
           <div className="grid md:grid-cols-3 gap-8">
             {[
                 {icon: Users, title: "Réseau Qualifié", description: "Entreprises vérifiées et certifiées."},
-                // La ligne ci-dessous est maintenant correcte car 'Calendar' est importé
                 {icon: Calendar, title: "Prise de Rendez-Vous", description: "Planifiez facilement vos rencontres."},
                 {icon: Star, title: "Système de Notation", description: "Évaluez et consultez les avis."}
             ].map((feature, index) => (
