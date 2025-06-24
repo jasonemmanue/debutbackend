@@ -1,4 +1,5 @@
 // /app/api/register/route.ts
+export const runtime = 'nodejs';
 import bcrypt from "bcrypt";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
