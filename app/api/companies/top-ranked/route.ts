@@ -2,7 +2,7 @@
 
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { Prisma } from '@prisma/client'; // [AJOUTÉ] Importation pour le typage des erreurs
+import { Prisma } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,15 +66,12 @@ export async function GET() {
   } catch (error) {
     console.error('[API_TOP_RANKED_COMPANIES_ERROR]', error);
     
-    // [CORRIGÉ] Ajout d'une vérification de type pour l'objet 'error'
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      // Maintenant TypeScript sait que 'error' a une propriété 'code'
       if (error.code === 'P1001') {
-          return new NextResponse("Impossible de se connecter à la base de données. Veuillez vérifier que le serveur de base de données est en cours d'exécution et accessible.", { status: 500 });
+          return new NextResponse("Impossible de se connecter à la base de données.", { status: 500 });
       }
     }
 
-    // Réponse générique pour toutes les autres erreurs
     return new NextResponse("Erreur interne du serveur lors de la récupération du classement.", { status: 500 });
   }
 }

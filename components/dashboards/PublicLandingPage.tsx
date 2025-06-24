@@ -2,6 +2,8 @@
 "use client"
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +30,15 @@ interface TopRankedCompany {
   followerCount: number;
 }
 
+interface NewsSlide {
+  id: string;
+  title: string;
+  company: string;
+  excerpt: string;
+  image: string;
+  companyId: string | null | undefined;
+  date: Date | null;
+}
 
 export default function PublicLandingPage() {
   const [searchCompanyName, setSearchCompanyName] = useState("");
@@ -45,11 +56,12 @@ export default function PublicLandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentBgSlide, setCurrentBgSlide] = useState(0);
 
-  // États pour le classement des entreprises
   const [topCompanies, setTopCompanies] = useState<TopRankedCompany[]>([]);
   const [isLoadingTop, setIsLoadingTop] = useState(true);
-  const [visibleCount, setVisibleCount] = useState(5); // Affiche 5 par défaut
+  const [visibleCount, setVisibleCount] = useState(5);
 
+  const [newsSlides, setNewsSlides] = useState<NewsSlide[]>([]);
+  const [isLoadingNews, setIsLoadingNews] = useState(true);
 
   const backgroundImages = [
     "https://images.unsplash.com/photo-1556761175-4b46a572b786?w=1200&h=800&fit=crop",
@@ -57,20 +69,12 @@ export default function PublicLandingPage() {
     "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=1200&h=800&fit=crop",
   ];
 
-  const newsSlides = [
-    { id: 1, title: "TechCorp lance sa nouvelle solution IA", company: "TechCorp Solutions", excerpt: "Une révolution dans l'automatisation des processus.", image: "https://placehold.co/600x400/E9D5FF/3730A3?text=Nouveauté+IA", date: "Il y a 2 heures", views: "1.2k" },
-    { id: 2, title: "GreenEnergy signe un contrat majeur", company: "GreenEnergy France", excerpt: "Partenariat stratégique pour l'énergie solaire.", image: "https://placehold.co/600x400/A7F3D0/047857?text=Énergie+Solaire", date: "Il y a 4 heures", views: "856" },
-  ];
-  
-  // useEffect pour récupérer les entreprises classées
   useEffect(() => {
     const fetchTopCompanies = async () => {
       setIsLoadingTop(true);
       try {
         const response = await fetch('/api/companies/top-ranked');
-        if (!response.ok) {
-          throw new Error('Erreur lors du chargement du classement');
-        }
+        if (!response.ok) throw new Error('Erreur lors du chargement du classement');
         const data = await response.json();
         setTopCompanies(data);
       } catch (error) {
@@ -79,11 +83,27 @@ export default function PublicLandingPage() {
         setIsLoadingTop(false);
       }
     };
-
     fetchTopCompanies();
   }, []);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      setIsLoadingNews(true);
+      try {
+        const response = await fetch('/api/announcements/latest');
+        if (!response.ok) throw new Error('Erreur lors du chargement des actualités');
+        const data = await response.json();
+        setNewsSlides(data);
+      } catch (error) {
+        console.error(error);
+        setNewsSlides([]);
+      } finally {
+        setIsLoadingNews(false);
+      }
+    };
+    fetchNews();
+  }, []);
   
-  // Fetch countries on mount
   useEffect(() => {
     const fetchCountries = async () => {
       try {
@@ -97,7 +117,6 @@ export default function PublicLandingPage() {
     fetchCountries();
   }, []);
 
-  // Fetch suggestions for company and city
   const fetchSuggestions = useCallback(async (field: 'company' | 'city', query: string) => {
     if (query.length < 2) {
       if (field === 'company') setCompanySuggestions([]);
@@ -128,7 +147,6 @@ export default function PublicLandingPage() {
     return () => clearTimeout(debounceTimer);
   }, [searchCity, fetchSuggestions]);
 
-  // Handle search submission
   const handleSearch = async () => {
     setIsLoading(true);
     setHasSearched(true);
@@ -138,7 +156,6 @@ export default function PublicLandingPage() {
       if (searchCompanyName) params.append('companyName', searchCompanyName);
       if (searchCountry) params.append('country', searchCountry);
       if (searchCity) params.append('city', searchCity);
-
       const response = await fetch(`/api/public-search?${params.toString()}`);
       const data: CompanySearchResult[] = await response.json();
       setSearchResults(data);
@@ -149,13 +166,12 @@ export default function PublicLandingPage() {
     }
   };
 
-  // Carousels logic
   useEffect(() => {
-    const newsTimer = setInterval(() => setCurrentSlide((prev) => (prev + 1) % newsSlides.length), 5000);
     const bgTimer = setInterval(() => setCurrentBgSlide((prev) => (prev + 1) % backgroundImages.length), 3000);
+    const newsTimer = newsSlides.length > 1 ? setInterval(() => setCurrentSlide((prev) => (prev + 1) % newsSlides.length), 5000) : null;
     return () => {
-      clearInterval(newsTimer);
       clearInterval(bgTimer);
+      if (newsTimer) clearInterval(newsTimer);
     };
   }, [newsSlides.length, backgroundImages.length]);
   
@@ -168,7 +184,7 @@ export default function PublicLandingPage() {
         <div className="absolute inset-0">
           {backgroundImages.map((image, index) => (
             <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentBgSlide ? "opacity-100" : "opacity-0"}`}>
-              <img src={image} alt={`Background slide ${index + 1}`} className="absolute inset-0 w-full h-full object-cover" />
+              <Image src={image} alt={`Background slide ${index + 1}`} fill className="object-cover" />
             </div>
           ))}
           <div className="absolute inset-0 bg-gradient-to-r from-rose-900/60 via-purple-900/40 to-rose-900/60 z-10"></div>
@@ -273,7 +289,6 @@ export default function PublicLandingPage() {
         </section>
       )}
 
-      {/* Section TOP ENTREPRISES mise à jour */}
       <section className="py-16 px-6 bg-gradient-to-br from-rose-50 to-purple-50">
         <div className="container mx-auto">
           <div className="text-center mb-12">
@@ -313,49 +328,75 @@ export default function PublicLandingPage() {
         </div>
       </section>
 
-      <section className="py-16 px-6 bg-gradient-to-r from-rose-50 to-purple-50">
+      <section className="py-16 px-6 bg-white">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-light mb-4 text-gray-800">ACTUALITÉS <span className="font-normal text-rose-600">ENTREPRISES</span></h2>
             <p className="text-lg text-gray-600">Suivez les dernières nouvelles de nos partenaires</p>
           </div>
           <div className="relative max-w-4xl mx-auto">
-            <div className="overflow-hidden rounded-3xl shadow-2xl">
-              <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
-                {newsSlides.map((slide) => (
-                  <div key={slide.id} className="w-full flex-shrink-0">
-                    <Card className="border-0 rounded-none"><CardContent className="p-0"><div className="grid md:grid-cols-2 gap-0">
-                          <div className="relative h-64 md:h-80"><img src={slide.image} alt={slide.title} className="object-cover w-full h-full" /></div>
-                          <div className="p-8 flex flex-col justify-center bg-white">
-                            <Badge className="w-fit mb-4 bg-rose-100 text-rose-700 hover:bg-rose-100">{slide.company}</Badge>
-                            <h3 className="text-2xl font-semibold mb-4 text-gray-800 leading-tight">{slide.title}</h3>
-                            <p className="text-gray-600 mb-6 leading-relaxed">{slide.excerpt}</p>
-                            <div className="flex items-center justify-between text-sm text-gray-500">
-                              <div className="flex items-center space-x-4"><div className="flex items-center"><Clock className="h-4 w-4 mr-1" />{slide.date}</div><div className="flex items-center"><Eye className="h-4 w-4 mr-1" />{slide.views} vues</div></div>
-                              <Button variant="ghost" className="text-rose-600 hover:text-rose-700 p-0">Lire plus →</Button>
-                            </div>
-                          </div>
-                    </div></CardContent></Card>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <Button variant="outline" size="icon" className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm border-rose-200 hover:bg-rose-50" onClick={prevSlide}><ChevronLeft className="h-4 w-4" /></Button>
-            <Button variant="outline" size="icon" className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm border-rose-200 hover:bg-rose-50" onClick={nextSlide}><ChevronRight className="h-4 w-4" /></Button>
+            {isLoadingNews ? (
+                <div className="flex justify-center items-center h-80 bg-gray-100 rounded-3xl">
+                    <Loader2 className="h-10 w-10 animate-spin text-rose-500" />
+                </div>
+            ) : newsSlides.length > 0 ? (
+                <>
+                    <div className="overflow-hidden rounded-3xl shadow-2xl">
+                    <div className="flex transition-transform duration-500 ease-in-out" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
+                        {newsSlides.map((slide) => (
+                        <div key={slide.id} className="w-full flex-shrink-0">
+                            <Card className="border-0 rounded-none"><CardContent className="p-0"><div className="grid md:grid-cols-2 gap-0">
+                                <div className="relative h-64 md:h-80 bg-gray-200">
+                                    <Image
+                                        src={slide.image}
+                                        alt={`Image pour ${slide.title}`}
+                                        fill
+                                        className="object-cover"
+                                        onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(slide.company.charAt(0))}&background=E0E7FF&color=3730A3` }}
+                                    />
+                                </div>
+                                <div className="p-8 flex flex-col justify-center bg-white">
+                                    <Link href={slide.companyId ? `/company/${slide.companyId}` : '#'}>
+                                        <Badge className="w-fit mb-4 bg-rose-100 text-rose-700 hover:bg-rose-200 cursor-pointer">{slide.company}</Badge>
+                                    </Link>
+                                    <h3 className="text-2xl font-semibold mb-4 text-gray-800 leading-tight">{slide.title}</h3>
+                                    <p className="text-gray-600 mb-6 leading-relaxed line-clamp-3">{slide.excerpt}</p>
+                                    <div className="flex items-center justify-between text-sm text-gray-500">
+                                        <div className="flex items-center space-x-4"><div className="flex items-center"><Clock className="h-4 w-4 mr-1" />{slide.date ? new Date(slide.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : 'N/A'}</div></div>
+                                        <Link href={slide.companyId ? `/company/${slide.companyId}/announcements` : '#'}>
+                                            <Button variant="ghost" className="text-rose-600 hover:text-rose-700 p-0">Lire plus →</Button>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div></CardContent></Card>
+                        </div>
+                        ))}
+                    </div>
+                    </div>
+                    {newsSlides.length > 1 && (
+                        <>
+                        <Button variant="outline" size="icon" className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm border-rose-200 hover:bg-rose-50" onClick={prevSlide}><ChevronLeft className="h-4 w-4" /></Button>
+                        <Button variant="outline" size="icon" className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm border-rose-200 hover:bg-rose-50" onClick={nextSlide}><ChevronRight className="h-4 w-4" /></Button>
+                        </>
+                    )}
+                </>
+            ) : (
+                <p className="text-center text-gray-500 h-80 flex items-center justify-center bg-gray-100 rounded-3xl">Aucune actualité à afficher pour le moment.</p>
+            )}
           </div>
         </div>
       </section>
 
-      <section className="py-16 px-6 bg-white">
+      <section className="py-16 px-6 bg-gradient-to-r from-purple-50 to-rose-50">
         <div className="container mx-auto">
-          <div className="text-center mb-12"><h2 className="text-4xl font-light mb-4 text-gray-800">POURQUOI <span className="font-normal text-rose-600">NOUS CHOISIR</span></h2><p className="text-lg text-gray-600">Une plateforme pensée pour l'excellence</p></div>
+          <div className="text-center mb-12"><h2 className="text-4xl font-light mb-4 text-gray-800">POURQUOI <span className="font-normal text-purple-600">NOUS CHOISIR</span></h2><p className="text-lg text-gray-600">Une plateforme pensée pour l'excellence</p></div>
           <div className="grid md:grid-cols-3 gap-8">
             {[
                 {icon: Users, title: "Réseau Qualifié", description: "Entreprises vérifiées et certifiées."},
-                {icon: Calendar, title: "Prise de Rendez-Vous", description: "Planifiez facilement vos rencontres."},
-                {icon: Star, title: "Système de Notation", description: "Évaluez et consultez les avis."}
+                {icon: Handshake, title: "Opportunités de Partenariat", description: "Collaborez avec les leaders de votre secteur."},
+                {icon: Star, title: "Système de Notation", description: "Évaluez et consultez les avis pour des décisions éclairées."}
             ].map((feature, index) => (
-              <Card key={index} className="group text-center hover:shadow-xl transition-all duration-300 border-rose-100 hover:border-rose-300">
+              <Card key={index} className="group text-center hover:shadow-xl transition-all duration-300 border-purple-100 hover:border-purple-300 bg-white/90 backdrop-blur-sm">
                 <CardContent className="p-8">
                   <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-rose-500 to-purple-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300"><feature.icon className="h-8 w-8 text-white" /></div>
                   <h3 className="text-xl font-semibold mb-4 text-gray-800">{feature.title}</h3>
