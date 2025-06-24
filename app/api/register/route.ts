@@ -1,6 +1,7 @@
 // /app/api/register/route.ts
 export const runtime = 'nodejs';
-import bcrypt from "bcrypt";
+
+import bcrypt from "bcryptjs"; // CORRECTION : Utilisation de bcryptjs au lieu de bcrypt
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -11,14 +12,12 @@ export async function POST(request: Request) {
 
     // --- Validation des données ---
     if (!name || !email || !password) {
-      // CORRECTION : On renvoie un objet JSON avec une clé "message"
       return NextResponse.json(
         { message: "Les informations (nom, email, mot de passe) sont requises" },
         { status: 400 }
       );
     }
     if (password !== confirmPassword) {
-      // CORRECTION : On renvoie un objet JSON avec une clé "message"
       return NextResponse.json(
         { message: "Les mots de passe ne correspondent pas." },
         { status: 400 }
@@ -27,7 +26,6 @@ export async function POST(request: Request) {
 
     const exist = await prisma.user.findUnique({ where: { email } });
     if (exist) {
-      // CORRECTION : On renvoie un objet JSON avec une clé "message"
       return NextResponse.json(
         { message: "Un utilisateur avec cet email existe déjà." },
         { status: 400 }
@@ -49,7 +47,6 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error("ERREUR D'INSCRIPTION:", error);
-    // CORRECTION : On renvoie aussi un objet JSON pour les erreurs internes
     return NextResponse.json(
         { message: "Erreur interne du serveur" },
         { status: 500 }
