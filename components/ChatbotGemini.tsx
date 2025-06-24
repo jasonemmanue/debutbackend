@@ -3,9 +3,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import './ChatbotGemini.css'; // Importation du CSS local
+import './ChatbotGemini.css';
+// [MODIFIÉ] Importer le nouveau contexte depuis le fichier dédié
+import { BUSINESS_BOOK_HOW_TO_CONTEXT } from '@/lib/chatbotContext';
 
-// [CORRIGÉ] Utilisation de la variable d'environnement Next.js
 const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
 if (!API_KEY) {
@@ -14,28 +15,6 @@ if (!API_KEY) {
 
 const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
 const model = genAI ? genAI.getGenerativeModel({ model: "gemini-1.5-flash" }) : null;
-
-// Contexte pour le chatbot, inspiré de votre fichier d'entraînement
-const BUSINESS_BOOK_CONTEXT = `
-Tu es un assistant IA pour "BusinessBook", une plateforme web innovante. Ton objectif principal est de répondre aux questions des utilisateurs concernant BusinessBook en te basant uniquement sur les informations fournies ci-dessous. Si une question ne peut pas être répondue avec ces informations, indique-le poliment.
-
----
-**Contexte Général du Projet BusinessBook :**
-
-* **Nom du Projet :** BusinessBook.
-* **But Global :** Connecter les entreprises, particuliers et stagiaires dans un écosystème numérique innovant.
-* **Problème Actuel :** Difficultés croissantes pour les entreprises, particuliers et stagiaires à établir des connexions professionnelles efficaces. Les annuaires traditionnels sont insuffisants. Un fossé persiste entre l'offre et la demande malgré la digitalisation.
-* **Défis Identifiés :**
-    * Manque de visibilité des entreprises (PME, startups).
-    * Difficultés pour les stagiaires à trouver des opportunités pertinentes.
-    * Absence de plateforme centralisée pour les interactions B2B (Business-to-Business) et B2C (Business-to-Consumer).
-* **Solution Proposée (BusinessBook) :**
-  BusinessBook est une plateforme web qui propose un annuaire intelligent, un système de suivi d'entreprises, des outils de gestion pour entreprises, et une interface pour stagiaires et particuliers.
-* **Besoins Fonctionnels (Entreprises) :** Gestion de profil, gestion RH (offres de stage), communication (annonces, événements), et gestion des prestations de services.
-* **Besoins Fonctionnels (Particuliers/Stagiaires) :** Recherche d'entreprises, suivi, candidatures aux stages, et interaction sociale.
-* **Performance attendue :** Temps de chargement des pages < 3 secondes, support de 10 000 utilisateurs simultanés.
----
-`;
 
 // Définition des types pour les messages
 interface Message {
@@ -50,7 +29,7 @@ function ChatbotGemini() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setMessages([{ text: "Bonjour ! Je suis l'assistant BusinessBook. Comment puis-je vous aider ?", sender: 'bot' }]);
+    setMessages([{ text: "Bonjour ! Je suis l'assistant BusinessBook. Comment puis-je vous aider à utiliser la plateforme ?", sender: 'bot' }]);
   }, []);
 
   const scrollToBottom = () => {
@@ -69,7 +48,8 @@ function ChatbotGemini() {
     setLoading(true);
 
     try {
-      const prompt = `${BUSINESS_BOOK_CONTEXT}\n\nQuestion de l'utilisateur: ${userMessage.text}\n\nRéponse:`;
+      // [MODIFIÉ] Utilisation du nouveau contexte importé
+      const prompt = `${BUSINESS_BOOK_HOW_TO_CONTEXT}\n\nQuestion de l'utilisateur: ${userMessage.text}\n\nRéponse:`;
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const botMessage: Message = { text: response.text(), sender: 'bot' };
